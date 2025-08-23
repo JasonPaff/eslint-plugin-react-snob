@@ -3,13 +3,15 @@ import { RuleTester } from '@typescript-eslint/rule-tester';
 import { noInlineStyles } from '../../src/rules/no-inline-styles';
 
 const ruleTester = new RuleTester({
-  parser: '@typescript-eslint/parser',
-  parserOptions: {
-    ecmaFeatures: {
-      jsx: true,
+  languageOptions: {
+    parser: require('@typescript-eslint/parser'),
+    parserOptions: {
+      ecmaFeatures: {
+        jsx: true,
+      },
+      ecmaVersion: 2020,
+      sourceType: 'module',
     },
-    ecmaVersion: 2020,
-    sourceType: 'module',
   },
 });
 
