@@ -45,12 +45,3 @@ Examples of **correct** code for this rule:
 ## Options
 
 This rule has no options.
-
-## When Not To Use It
-
-If your team prefers the more concise syntax of direct string literals in JSX attributes, you may want to disable this rule. However, using this rule can help maintain consistency and make the distinction between static strings and dynamic expressions more explicit.
-
-## Further Reading
-
-- [JSX In Depth - React Documentation](https://reactjs.org/docs/jsx-in-depth.html)
-- [Introducing JSX - React Documentation](https://reactjs.org/docs/introducing-jsx.html)

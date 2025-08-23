@@ -27,11 +27,6 @@ Examples of **correct** code for this rule:
 <div>Content</div>
 ```
 
-## When Not To Use It
+## Options
 
-If your project specifically requires inline styles (e.g., dynamic styling based on props), you may want to disable this rule or use ESLint disable comments for specific cases.
-
-## Further Reading
-
-- [React Styling Best Practices](https://reactjs.org/docs/dom-elements.html#style)
-- [CSS-in-JS vs CSS Classes](https://css-tricks.com/the-fragmented-but-evolving-state-of-css-in-js/)
+This rule has no options.
