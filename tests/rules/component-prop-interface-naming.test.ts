@@ -274,6 +274,116 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         },
       ],
     },
+
+    // Type alias instead of interface with incorrect naming
+    {
+      code: `
+        type ButtonOptions = {
+          onClick: () => void;
+        }
+        function Button({ onClick }: ButtonOptions) {
+          return <button onClick={onClick}>Click me</button>;
+        }
+      `,
+      errors: [
+        {
+          data: {
+            actual: 'ButtonOptions',
+            component: 'Button',
+            expected: 'ButtonProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
+
+    // Component ending in "Component" with wrong base name
+    {
+      code: `
+        interface UserOptions {
+          id: number;
+        }
+        function UserComponent({ id }: UserOptions) {
+          return <div>User {id}</div>;
+        }
+      `,
+      errors: [
+        {
+          data: {
+            actual: 'UserOptions',
+            component: 'UserComponent',
+            expected: 'UserComponentProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
+
+    // Exported function component with incorrect naming
+    {
+      code: `
+        interface ButtonConfig {
+          label: string;
+        }
+        export function Button({ label }: ButtonConfig) {
+          return <button>{label}</button>;
+        }
+      `,
+      errors: [
+        {
+          data: {
+            actual: 'ButtonConfig',
+            component: 'Button',
+            expected: 'ButtonProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
+
+    // Default exported component with incorrect naming
+    {
+      code: `
+        interface HeaderData {
+          title: string;
+        }
+        export default function Header({ title }: HeaderData) {
+          return <h1>{title}</h1>;
+        }
+      `,
+      errors: [
+        {
+          data: {
+            actual: 'HeaderData',
+            component: 'Header',
+            expected: 'HeaderProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
+
+    // forwardRef with multiple type parameters and incorrect naming
+    {
+      code: `
+        interface CustomInputSettings {
+          value: string;
+        }
+        const CustomInput = forwardRef<HTMLInputElement, CustomInputSettings>(
+          ({ value }, ref) => <input ref={ref} value={value} />
+        );
+      `,
+      errors: [
+        {
+          data: {
+            actual: 'CustomInputSettings',
+            component: 'CustomInput',
+            expected: 'CustomInputProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
   ],
 
   valid: [
@@ -433,6 +543,123 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
           console.log(name);
           return <></>;
         };
+      `,
+    },
+
+    // Type alias with correct naming
+    {
+      code: `
+        type ButtonProps = {
+          onClick: () => void;
+        }
+        function Button({ onClick }: ButtonProps) {
+          return <button onClick={onClick}>Click me</button>;
+        }
+      `,
+    },
+
+    // Component ending in "Component" with correct base name
+    {
+      code: `
+        interface UserProps {
+          id: number;
+        }
+        function UserComponent({ id }: UserProps) {
+          return <div>User {id}</div>;
+        }
+      `,
+    },
+
+    // Exported component with correct naming
+    {
+      code: `
+        interface ButtonProps {
+          label: string;
+        }
+        export function Button({ label }: ButtonProps) {
+          return <button>{label}</button>;
+        }
+      `,
+    },
+
+    // Default exported component with correct naming
+    {
+      code: `
+        interface HeaderProps {
+          title: string;
+        }
+        export default function Header({ title }: HeaderProps) {
+          return <h1>{title}</h1>;
+        }
+      `,
+    },
+
+    // Component with union types in props
+    {
+      code: `
+        interface ButtonProps {
+          variant: 'primary' | 'secondary';
+        }
+        function Button({ variant }: ButtonProps) {
+          return <button className={variant}>Click me</button>;
+        }
+      `,
+    },
+
+    // Component with generic props interface
+    {
+      code: `
+        interface ListProps<T> {
+          items: T[];
+        }
+        function List<T>({ items }: ListProps<T>) {
+          return <ul>{items.map(item => <li key={String(item)}>{String(item)}</li>)}</ul>;
+        }
+      `,
+    },
+
+    // Component with intersection types
+    {
+      code: `
+        interface BaseProps {
+          id: string;
+        }
+        interface ButtonProps extends BaseProps {
+          onClick: () => void;
+        }
+        function Button({ id, onClick }: ButtonProps) {
+          return <button id={id} onClick={onClick}>Click me</button>;
+        }
+      `,
+    },
+
+    // Component with complex nested props
+    {
+      code: `
+        interface ModalProps {
+          isOpen: boolean;
+          onClose: () => void;
+          children: React.ReactNode;
+        }
+        function Modal({ isOpen, onClose, children }: ModalProps) {
+          return isOpen ? <div onClick={onClose}>{children}</div> : null;
+        }
+      `,
+    },
+
+    // Arrow function with correct type alias naming
+    {
+      code: `
+        type CardProps = {
+          title: string;
+          description: string;
+        }
+        const Card = ({ title, description }: CardProps) => (
+          <div>
+            <h2>{title}</h2>
+            <p>{description}</p>
+          </div>
+        );
       `,
     },
   ],
