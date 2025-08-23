@@ -21,9 +21,9 @@ export const recommended = {
     'react-snob': plugin,
   },
   rules: {
-    'react-snob/component-prop-interface-naming': 'warn',
+    'react-snob/component-prop-interface-naming': 'error',
     'react-snob/no-inline-styles': 'warn',
-    'react-snob/require-jsx-string-braces': 'warn',
+    'react-snob/require-jsx-string-braces': 'error',
   },
 };
 
