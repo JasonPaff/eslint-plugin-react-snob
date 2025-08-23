@@ -25,7 +25,15 @@ export const requireJsxStringBraces = createRule({
               if (node.value && node.value.type === 'Literal' && typeof node.value.raw === 'string') {
                 const quote = node.value.raw.charAt(0);
                 const innerValue = node.value.raw.slice(1, -1);
-                return fixer.replaceText(node.value, `{${quote}${innerValue}${quote}}`);
+                
+                // Check if the string contains line breaks
+                if (innerValue.includes('\n')) {
+                  // Convert to template literal for multi-line strings
+                  return fixer.replaceText(node.value, `{\`${innerValue.replace(/`/g, '\\`')}\`}`);
+                } else {
+                  // Keep as regular string literal for single-line strings
+                  return fixer.replaceText(node.value, `{${quote}${innerValue}${quote}}`);
+                }
               }
               return null;
             },

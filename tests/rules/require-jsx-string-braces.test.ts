@@ -109,6 +109,53 @@ ruleTester.run('require-jsx-string-braces', requireJsxStringBraces, {
       ],
       output: '<div xmlns:custom={"http://example.com"} custom:attr={"value"} />',
     },
+    {
+      code: `<div title="This is a
+    multi-line string">Content</div>`,
+      errors: [
+        {
+          data: {
+            attribute: 'title',
+            value: 'This is a\n    multi-line string',
+          },
+          messageId: 'requireBraces',
+        },
+      ],
+      output: `<div title={\`This is a
+    multi-line string\`}>Content</div>`,
+    },
+    {
+      code: `<path
+    d="M449.99,422.439v-85.005h22.354v11.444
+      c6.152-7.383,16.544-13.538,27.095-13.538v21.818"
+  />`,
+      errors: [
+        {
+          data: {
+            attribute: 'd',
+            value: 'M449.99,422.439v-85.005h22.354v11.444\n      c6.152-7.383,16.544-13.538,27.095-13.538v21.818',
+          },
+          messageId: 'requireBraces',
+        },
+      ],
+      output: `<path
+    d={\`M449.99,422.439v-85.005h22.354v11.444
+      c6.152-7.383,16.544-13.538,27.095-13.538v21.818\`}
+  />`,
+    },
+    {
+      code: `<div data-value="string with \`backticks\`">Content</div>`,
+      errors: [
+        {
+          data: {
+            attribute: 'data-value',
+            value: 'string with `backticks`',
+          },
+          messageId: 'requireBraces',
+        },
+      ],
+      output: `<div data-value={"string with \`backticks\`"}>Content</div>`,
+    },
   ],
 
   valid: [
@@ -141,6 +188,14 @@ ruleTester.run('require-jsx-string-braces', requireJsxStringBraces, {
     },
     {
       code: '<div xmlns:custom={"http://example.com"} custom:attr={"value"} />',
+    },
+    {
+      code: `<div title={\`This is a
+    multi-line template literal\`}>Content</div>`,
+    },
+    {
+      code: `<path d={\`M449.99,422.439v-85.005h22.354v11.444
+    c6.152-7.383,16.544-13.538,27.095-13.538v21.818\`} />`,
     },
   ],
 });
