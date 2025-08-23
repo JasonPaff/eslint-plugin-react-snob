@@ -23,7 +23,8 @@ Then configure the rules you want to use under the rules section:
 ```json
 {
   "rules": {
-    "react-snob/no-inline-styles": "error"
+    "react-snob/no-inline-styles": "error",
+    "react-snob/require-jsx-string-braces": "error"
   }
 }
 ```
@@ -51,6 +52,7 @@ This plugin provides some predefined configurations:
 ## Supported Rules
 
 - [`react-snob/no-inline-styles`](docs/rules/no-inline-styles.md) - Disallow inline styles in JSX elements
+- [`react-snob/require-jsx-string-braces`](docs/rules/require-jsx-string-braces.md) - Require curly braces around string literals in JSX attributes
 
 ## Development
 
