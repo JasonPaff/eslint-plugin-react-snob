@@ -103,7 +103,6 @@ export const requireBooleanPrefixIs = createRule({
       });
     }
 
-
     return {
       // Regular arrow function parameters (non-component context)
       'ArrowFunctionExpression > :matches(Identifier[typeAnnotation], ObjectPattern)'(
