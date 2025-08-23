@@ -54,12 +54,12 @@ import { TSESTree, AST_NODE_TYPES } from '@typescript-eslint/utils';
 ### Component and Analysis Utilities (When Needed)
 
 ```typescript
-import { 
-  extractComponentName, 
+import {
+  extractComponentName,
   isComponentFunction,
   countLogicalOperators,
   hasTemplateLiteral,
-  findInterfaceNamesInTypeReference
+  findInterfaceNamesInTypeReference,
 } from '../utils';
 ```
 
@@ -237,7 +237,7 @@ import { extractComponentName, isComponentFunction } from '../utils';
 // In your rule's create function
 FunctionDeclaration(node) {
   if (!isComponentFunction(node)) return;
-  
+
   const componentName = extractComponentName(node);
   if (componentName) {
     // Process component...
@@ -254,7 +254,7 @@ import { countLogicalOperators, hasTemplateLiteral } from '../utils';
 JSXExpressionContainer(node) {
   const logicalCount = countLogicalOperators(node.expression);
   const hasTemplate = hasTemplateLiteral(node.expression);
-  
+
   if (logicalCount > 2 || hasTemplate) {
     // Report complex condition...
   }
