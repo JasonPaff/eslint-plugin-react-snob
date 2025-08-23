@@ -146,8 +146,8 @@ export default [
 
 ## Important Notes
 
-- This plugin is React-focused and should only target JSX/TSX files
-- All rules should be defensive and only apply to actual React components
+- This plugin is React-focused and should only target JSX/TSX files for component-related rules and JS/TS files for hook-related rules
+- All rules should be defensive and only apply to actual React components and hooks
 - Maintain backward compatibility when possible
 - Follow TypeScript strict mode conventions
 - Use ESLint's TypeScript utilities from `@typescript-eslint/utils`

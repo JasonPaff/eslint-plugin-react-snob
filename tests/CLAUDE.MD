@@ -61,8 +61,8 @@ ruleTester.run('rule-name', ruleName, {
 tests/
 ├── rules/                    # Rule-specific tests (mirrors src/rules/)
 │   ├── no-inline-styles.test.ts
-│   ├── require-jsx-string-braces.test.ts
-│   └── props-interface-naming.test.ts
+│   └── require-jsx-string-braces.test.ts
+│   
 └── CLAUDE.MD                # This documentation file
 ```
 
@@ -331,12 +331,3 @@ npm test -- --coverage
 5. **Test error messages**: Ensure messages are helpful and accurate
 6. **Test auto-fixes**: Verify fixes produce correct output
 7. **Add regression tests**: Prevent future bugs
-
-## Integration with CI/CD
-
-Tests run automatically on:
-- Pull requests
-- Main branch commits
-- Release builds
-
-Coverage reports are generated and should maintain high coverage for rule implementations.
