@@ -32,12 +32,12 @@ export const componentPropInterfaceNaming = createRule({
 
     function findInterfaceNamesInTypeReference(typeRef: TSESTree.TSTypeReference): string[] {
       const interfaceNames: string[] = [];
-      
+
       // Check if the main type reference is an identifier
       if (typeRef.typeName.type === 'Identifier') {
         interfaceNames.push(typeRef.typeName.name);
       }
-      
+
       // Recursively check type arguments
       if (typeRef.typeArguments && typeRef.typeArguments.params.length > 0) {
         for (const param of typeRef.typeArguments.params) {
@@ -46,7 +46,7 @@ export const componentPropInterfaceNaming = createRule({
           }
         }
       }
-      
+
       return interfaceNames;
     }
 
@@ -57,14 +57,14 @@ export const componentPropInterfaceNaming = createRule({
       // Generate possible valid interface names
       const fullExpectedName = `${componentName}Props`;
       let baseExpectedName = fullExpectedName;
-      
-      // If component name ends with "Component" or "FunctionComponent", 
+
+      // If component name ends with "Component" or "FunctionComponent",
       // also accept interface without those suffixes
       if (componentName.endsWith('Component')) {
         const baseName = componentName.replace(/(?:Function)?Component$/, '');
         baseExpectedName = `${baseName}Props`;
       }
-      
+
       let actualInterfaceName: string | null = null;
 
       // Handle function declarations
@@ -91,11 +91,11 @@ export const componentPropInterfaceNaming = createRule({
           // Handle forwardRef, memo, etc.
           if (componentNode.init.arguments.length > 0) {
             let callExpression = componentNode.init;
-            
+
             // Handle nested calls like memo(forwardRef(...))
             while (callExpression && callExpression.type === 'CallExpression') {
               const firstArg = callExpression.arguments[0];
-              
+
               if (firstArg.type === 'ArrowFunctionExpression' || firstArg.type === 'FunctionExpression') {
                 functionNode = firstArg;
                 break;
@@ -122,20 +122,22 @@ export const componentPropInterfaceNaming = createRule({
         // Handle forwardRef with generics (including nested in memo, etc.)
         if (componentNode.init.type === 'CallExpression') {
           let callExpression = componentNode.init;
-          
+
           // Search for forwardRef in nested calls
           while (callExpression && callExpression.type === 'CallExpression') {
-            if (callExpression.callee.type === 'Identifier' && 
-                callExpression.callee.name === 'forwardRef' &&
-                callExpression.typeArguments &&
-                callExpression.typeArguments.params.length >= 2) {
+            if (
+              callExpression.callee.type === 'Identifier' &&
+              callExpression.callee.name === 'forwardRef' &&
+              callExpression.typeArguments &&
+              callExpression.typeArguments.params.length >= 2
+            ) {
               const propsTypeParam = callExpression.typeArguments.params[1];
               if (propsTypeParam.type === 'TSTypeReference' && propsTypeParam.typeName.type === 'Identifier') {
                 actualInterfaceName = propsTypeParam.typeName.name;
               }
               break;
             }
-            
+
             // Continue searching in nested calls
             const firstArg = callExpression.arguments[0];
             if (firstArg && firstArg.type === 'CallExpression') {
@@ -149,22 +151,30 @@ export const componentPropInterfaceNaming = createRule({
 
       // Handle variable declarator with type annotation (e.g., FunctionComponent<PropsType>)
       if (componentNode.type === 'VariableDeclarator' && componentNode.id.type === 'Identifier') {
-        if (componentNode.id.typeAnnotation && componentNode.id.typeAnnotation.typeAnnotation.type === 'TSTypeReference') {
+        if (
+          componentNode.id.typeAnnotation &&
+          componentNode.id.typeAnnotation.typeAnnotation.type === 'TSTypeReference'
+        ) {
           const typeRef = componentNode.id.typeAnnotation.typeAnnotation;
           if (typeRef.typeArguments && typeRef.typeArguments.params.length > 0) {
             const firstTypeParam = typeRef.typeArguments.params[0];
             if (firstTypeParam.type === 'TSTypeReference') {
               // Find all interface names in the type reference (including nested ones)
               const interfaceNames = findInterfaceNamesInTypeReference(firstTypeParam);
-              
+
               // Look for an interface name that matches the expected patterns
               for (const name of interfaceNames) {
-                if (name.endsWith('Props') || name.endsWith('Options') || name.endsWith('Config') || name.endsWith('Settings')) {
+                if (
+                  name.endsWith('Props') ||
+                  name.endsWith('Options') ||
+                  name.endsWith('Config') ||
+                  name.endsWith('Settings')
+                ) {
                   actualInterfaceName = name;
                   break;
                 }
               }
-              
+
               // If no props-like interface found, use the first one (for direct references)
               if (!actualInterfaceName && firstTypeParam.typeName.type === 'Identifier') {
                 actualInterfaceName = firstTypeParam.typeName.name;
@@ -175,12 +185,10 @@ export const componentPropInterfaceNaming = createRule({
       }
 
       // Report error if interface name doesn't match expected pattern
-      if (actualInterfaceName && 
-          actualInterfaceName !== fullExpectedName && 
-          actualInterfaceName !== baseExpectedName) {
+      if (actualInterfaceName && actualInterfaceName !== fullExpectedName && actualInterfaceName !== baseExpectedName) {
         // Always suggest the full component name for consistency in error messages
         const expectedInterfaceName = fullExpectedName;
-        
+
         context.report({
           data: {
             actual: actualInterfaceName,

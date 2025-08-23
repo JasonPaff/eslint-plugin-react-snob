@@ -20,12 +20,14 @@ src/
 ### Main Entry Points
 
 **`src/index.ts`** - Legacy configuration format (ESLint 8.x and below):
+
 - Exports a plugin object with `configs`, `meta`, and `rules` properties
 - Uses CommonJS `export =` syntax for compatibility
 - Defines `recommended` and `strict` configurations
 - All rules must be manually added to both configurations
 
 **`src/configs/flat.ts`** - Flat configuration format (ESLint 9+):
+
 - Exports individual `recommended` and `strict` configuration objects
 - Uses ES module syntax
 - Provides a default export with both configs and plugin
@@ -34,21 +36,24 @@ src/
 ### Configuration Patterns
 
 #### Config Severity Levels
+
 - **recommended**: All rules set to `'warn'` - provides helpful suggestions
 - **strict**: All rules set to `'error'` - enforces strict compliance
 
 #### Adding New Rules to Configs
+
 When adding a new rule, you must update **both** configuration files:
 
 1. **Legacy config (`src/index.ts`)**:
+
    ```typescript
    import { newRule } from './rules/new-rule';
-   
+
    // Add to imports and rules object
    rules: {
      'new-rule': newRule,
    }
-   
+
    // Add to both configurations
    configs: {
      recommended: {
@@ -65,21 +70,22 @@ When adding a new rule, you must update **both** configuration files:
    ```
 
 2. **Flat config (`src/configs/flat.ts`)**:
+
    ```typescript
    import { newRule } from '../rules/new-rule';
-   
+
    // Add to plugin rules
    const plugin = {
      rules: {
        'new-rule': newRule,
-     }
+     },
    };
-   
+
    // Add to both exported configs
    export const recommended = {
      rules: {
        'react-snob/new-rule': 'warn',
-     }
+     },
    };
    ```
 
@@ -93,11 +99,13 @@ When adding a new rule, you must update **both** configuration files:
 ## Plugin Metadata
 
 ### Version Management
+
 - Version is currently hardcoded in both config files
 - Keep versions in sync between `src/index.ts` and `src/configs/flat.ts`
 - Version should match `package.json` version
 
 ### Plugin Naming
+
 - Plugin name: `'eslint-plugin-react-snob'`
 - Rule prefix: `'react-snob/'`
 - NPM package: `eslint-plugin-react-snob`
@@ -114,6 +122,7 @@ When adding a new rule, you must update **both** configuration files:
 6. **Update README**: Add rule to the "Supported Rules" section
 
 ### Build Process
+
 - TypeScript compilation outputs to `dist/` directory
 - Main entry: `dist/index.js` (legacy config)
 - Flat config entry: `dist/configs/flat.js`
@@ -122,6 +131,7 @@ When adding a new rule, you must update **both** configuration files:
 ## Configuration Usage Examples
 
 ### Legacy Config (.eslintrc.json)
+
 ```json
 {
   "extends": ["plugin:react-snob/recommended"],
@@ -133,6 +143,7 @@ When adding a new rule, you must update **both** configuration files:
 ```
 
 ### Flat Config (eslint.config.js)
+
 ```javascript
 import reactSnob from 'eslint-plugin-react-snob/configs/flat';
 
@@ -140,7 +151,7 @@ export default [
   {
     files: ['**/*.{js,jsx,ts,tsx}'],
     ...reactSnob.configs.recommended,
-  }
+  },
 ];
 ```
 

@@ -15,7 +15,11 @@ interface ButtonOptions {
   disabled?: boolean;
 }
 function Button({ onClick, disabled }: ButtonOptions) {
-  return <button onClick={onClick} disabled={disabled}>Click me</button>;
+  return (
+    <button onClick={onClick} disabled={disabled}>
+      Click me
+    </button>
+  );
 }
 
 // ❌ Interface name has wrong component name
@@ -43,30 +47,27 @@ interface InputConfig {
   placeholder: string;
   type?: string;
 }
-const Input = forwardRef<HTMLInputElement, InputConfig>(
-  ({ placeholder, type }, ref) => (
-    <input ref={ref} placeholder={placeholder} type={type} />
-  )
-);
+const Input = forwardRef<HTMLInputElement, InputConfig>(({ placeholder, type }, ref) => (
+  <input ref={ref} placeholder={placeholder} type={type} />
+));
 
 // ❌ TypeScript generic type annotation with wrong naming
-interface DogPenOptions {  // Should be DogPenProps or DogPenFunctionComponentProps
+interface DogPenOptions {
+  // Should be DogPenProps or DogPenFunctionComponentProps
   name: string;
 }
-const DogPenFunctionComponent: FunctionComponent<DogPenOptions> = ({ name }) => (
-  <div>{name}</div>
-);
+const DogPenFunctionComponent: FunctionComponent<DogPenOptions> = ({ name }) => <div>{name}</div>;
 
 // ❌ Complex nested generic with incorrect props interface
-interface UserSettings {  // Should be UserComponentProps or UserProps
+interface UserSettings {
+  // Should be UserComponentProps or UserProps
   id: number;
 }
-const UserComponent: FunctionComponent<ChildWrapper<UserSettings>> = ({ id }) => (
-  <div>User {id}</div>
-);
+const UserComponent: FunctionComponent<ChildWrapper<UserSettings>> = ({ id }) => <div>User {id}</div>;
 
 // ❌ Generic type parameters with wrong naming
-interface ButtonConfig<T> {  // Should be ButtonProps<T>
+interface ButtonConfig<T> {
+  // Should be ButtonProps<T>
   onClick: () => void;
   data: T;
 }
@@ -75,7 +76,8 @@ function Button<T>({ onClick, data }: ButtonConfig<T>) {
 }
 
 // ❌ Type aliases with incorrect naming
-type CardData = {  // Should be CardProps
+type CardData = {
+  // Should be CardProps
   title: string;
   content: string;
 };
@@ -87,12 +89,13 @@ const Card = ({ title, content }: CardData) => (
 );
 
 // ❌ Nested forwardRef with memo and wrong naming
-interface InputSettings {  // Should be InputProps
+interface InputSettings {
+  // Should be InputProps
   placeholder: string;
 }
-const Input = memo(forwardRef<HTMLInputElement, InputSettings>(
-  ({ placeholder }, ref) => <input ref={ref} placeholder={placeholder} />
-));
+const Input = memo(
+  forwardRef<HTMLInputElement, InputSettings>(({ placeholder }, ref) => <input ref={ref} placeholder={placeholder} />)
+);
 ```
 
 Examples of **correct** code for this rule:
@@ -104,7 +107,11 @@ interface ButtonProps {
   disabled?: boolean;
 }
 function Button({ onClick, disabled }: ButtonProps) {
-  return <button onClick={onClick} disabled={disabled}>Click me</button>;
+  return (
+    <button onClick={onClick} disabled={disabled}>
+      Click me
+    </button>
+  );
 }
 
 // ✅ Correct interface naming for arrow function component
@@ -124,11 +131,9 @@ interface InputProps {
   placeholder: string;
   type?: string;
 }
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ placeholder, type }, ref) => (
-    <input ref={ref} placeholder={placeholder} type={type} />
-  )
-);
+const Input = forwardRef<HTMLInputElement, InputProps>(({ placeholder, type }, ref) => (
+  <input ref={ref} placeholder={placeholder} type={type} />
+));
 
 // ✅ Complex component names work correctly
 interface FileDrawerProps {
@@ -139,7 +144,9 @@ interface FileDrawerProps {
 function FileDrawer({ isOpen, onClose, files }: FileDrawerProps) {
   return isOpen ? (
     <div onClick={onClose}>
-      {files.map(file => <div key={file}>{file}</div>)}
+      {files.map((file) => (
+        <div key={file}>{file}</div>
+      ))}
     </div>
   ) : null;
 }
@@ -153,28 +160,23 @@ function SimpleComponent() {
 interface MemoComponentProps {
   value: string;
 }
-const MemoComponent = memo(({ value }: MemoComponentProps) => (
-  <div>{value}</div>
-));
+const MemoComponent = memo(({ value }: MemoComponentProps) => <div>{value}</div>);
 
 // ✅ TypeScript generic type annotations
 interface DogPenProps {
   name: string;
 }
-const DogPenFunctionComponent: FunctionComponent<DogPenProps> = ({ name }) => (
-  <div>{name}</div>
-);
+const DogPenFunctionComponent: FunctionComponent<DogPenProps> = ({ name }) => <div>{name}</div>;
 
 // ✅ Alternative full component name for components ending in "Component"
 interface DogPenFunctionComponentProps {
   name: string;
 }
-const DogPenFunctionComponent: FunctionComponent<DogPenFunctionComponentProps> = ({ name }) => (
-  <div>{name}</div>
-);
+const DogPenFunctionComponent: FunctionComponent<DogPenFunctionComponentProps> = ({ name }) => <div>{name}</div>;
 
 // ✅ Flexible naming for components ending in "Component"
-interface UserProps {  // Acceptable for UserComponent
+interface UserProps {
+  // Acceptable for UserComponent
   id: number;
 }
 function UserComponent({ id }: UserProps) {
@@ -182,7 +184,8 @@ function UserComponent({ id }: UserProps) {
 }
 
 // ✅ Also acceptable: full component name
-interface UserComponentProps {  // Also acceptable for UserComponent
+interface UserComponentProps {
+  // Also acceptable for UserComponent
   id: number;
 }
 function UserComponent({ id }: UserComponentProps) {
@@ -193,9 +196,7 @@ function UserComponent({ id }: UserComponentProps) {
 interface MyComponentProps {
   title: string;
 }
-const MyComponent: FunctionComponent<ChildWrapper<MyComponentProps>> = ({ title }) => (
-  <div>{title}</div>
-);
+const MyComponent: FunctionComponent<ChildWrapper<MyComponentProps>> = ({ title }) => <div>{title}</div>;
 
 // ✅ Generic type parameters with correct naming
 interface ButtonProps<T> {
@@ -222,17 +223,19 @@ const Card = ({ title, content }: CardProps) => (
 interface InputProps {
   placeholder: string;
 }
-const Input = memo(forwardRef<HTMLInputElement, InputProps>(
-  ({ placeholder }, ref) => <input ref={ref} placeholder={placeholder} />
-));
+const Input = memo(
+  forwardRef<HTMLInputElement, InputProps>(({ placeholder }, ref) => <input ref={ref} placeholder={placeholder} />)
+);
 ```
 
 ## Naming Convention Details
 
 ### Basic Convention
+
 The rule enforces that prop interfaces follow the pattern `ComponentNameProps` where `ComponentName` matches the component's exact name.
 
 ### Flexible Naming for Components Ending in "Component"
+
 For components with names ending in "Component" or "FunctionComponent", the rule accepts two naming patterns:
 
 1. **Full component name**: `MyFunctionComponentProps` for component `MyFunctionComponent`
@@ -241,6 +244,7 @@ For components with names ending in "Component" or "FunctionComponent", the rule
 This flexibility accommodates different coding styles while maintaining consistency.
 
 ### TypeScript Generic Type Support
+
 The rule handles various TypeScript generic patterns:
 
 - **Direct generic annotation**: `FunctionComponent<PropsInterface>`

@@ -7,6 +7,7 @@ Disallow complex boolean conditions in JSX expressions and component props.
 This rule identifies complex boolean conditions in JSX expressions and component props, encouraging developers to extract them into descriptive variables for better readability and maintainability.
 
 Complex conditions are defined as:
+
 - More than 2 logical operators (`&&`, `||`)
 - Chained property access with logical operations
 - Multiple binary expressions combined with logical operators
@@ -36,32 +37,16 @@ return (
 );
 
 // Complex condition in JSX expression
-return (
-  <div>
-    {user && user.permissions && user.permissions.length > 0 && <AdminPanel />}
-  </div>
-);
+return <div>{user && user.permissions && user.permissions.length > 0 && <AdminPanel />}</div>;
 
 // Complex condition in component prop
-return (
-  <Button disabled={!user || !user.isActive || user.role !== 'admin'}>
-    Submit
-  </Button>
-);
+return <Button disabled={!user || !user.isActive || user.role !== 'admin'}>Submit</Button>;
 
 // Nested property access with multiple conditions
-return (
-  <div>
-    {user?.profile?.settings?.notifications && !isDisabled && hasPermission() && <NotificationBell />}
-  </div>
-);
+return <div>{user?.profile?.settings?.notifications && !isDisabled && hasPermission() && <NotificationBell />}</div>;
 
 // Multiple comparisons
-return (
-  <div>
-    {count > 0 && count < 100 && isValid && <Progress value={count} />}
-  </div>
-);
+return <div>{count > 0 && count < 100 && isValid && <Progress value={count} />}</div>;
 ```
 
 ✅ Examples of **correct** code for this rule:

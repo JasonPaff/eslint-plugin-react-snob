@@ -16,99 +16,6 @@ const ruleTester = new RuleTester({
 });
 
 ruleTester.run('no-complex-jsx-conditions', noComplexJsxConditions, {
-  valid: [
-    // 1. Simple boolean variables
-    {
-      code: `
-        const isReady = true;
-        return <div>{isReady && <Component />}</div>;
-      `,
-    },
-    // 2. Single negation
-    {
-      code: `
-        return <div>{!isLoading && <Component />}</div>;
-      `,
-    },
-    // 3. Single property access
-    {
-      code: `
-        return <div>{user.isActive && <Component />}</div>;
-      `,
-    },
-    // 4. Single method call
-    {
-      code: `
-        return <div>{hasPermission() && <Component />}</div>;
-      `,
-    },
-    // 5. Extracted complex conditions
-    {
-      code: `
-        const _canEdit = user && user.permissions && user.permissions.includes('edit');
-        return <div>{_canEdit && <EditButton />}</div>;
-      `,
-    },
-    // 6. Simple ternary with single variables
-    {
-      code: `
-        return <div>{isLoading ? <Spinner /> : <Content />}</div>;
-      `,
-    },
-    // 7. Simple comparison
-    {
-      code: `
-        return <div>{count > 0 && <Counter value={count} />}</div>;
-      `,
-    },
-    // 8. Single array/object check
-    {
-      code: `
-        return <div>{items.length && <List items={items} />}</div>;
-      `,
-    },
-    // 9. Extracted conditions in different JSX patterns
-    {
-      code: `
-        const _shouldShow = user && !error;
-        const _isEmpty = !data || data.length === 0;
-        return (
-          <div>
-            {_shouldShow && <Component />}
-            <button disabled={!_shouldShow}>Click</button>
-            <Modal open={_isEmpty}>No data</Modal>
-          </div>
-        );
-      `,
-    },
-    // 10. Simple boolean in component props
-    {
-      code: `
-        const isEnabled = true;
-        return <Button disabled={!isEnabled} />;
-      `,
-    },
-    // Edge case: Parentheses that don't add complexity
-    {
-      code: `
-        return <div>{(isLoading) && <Spinner />}</div>;
-      `,
-    },
-    // Simple logical with simple operands
-    {
-      code: `
-        return <div>{user && isActive && <Component />}</div>;
-      `,
-    },
-    // Template literals are acceptable when not overly complex
-    {
-      code: `
-        const message = \`Hello \${user.name}\`;
-        return <div>{user && <Greeting message={message} />}</div>;
-      `,
-    },
-  ],
-
   invalid: [
     // 1. Multiple AND conditions (original example)
     {
@@ -383,6 +290,99 @@ ruleTester.run('no-complex-jsx-conditions', noComplexJsxConditions, {
           messageId: 'complexCondition',
         },
       ],
+    },
+  ],
+
+  valid: [
+    // 1. Simple boolean variables
+    {
+      code: `
+        const isReady = true;
+        return <div>{isReady && <Component />}</div>;
+      `,
+    },
+    // 2. Single negation
+    {
+      code: `
+        return <div>{!isLoading && <Component />}</div>;
+      `,
+    },
+    // 3. Single property access
+    {
+      code: `
+        return <div>{user.isActive && <Component />}</div>;
+      `,
+    },
+    // 4. Single method call
+    {
+      code: `
+        return <div>{hasPermission() && <Component />}</div>;
+      `,
+    },
+    // 5. Extracted complex conditions
+    {
+      code: `
+        const _canEdit = user && user.permissions && user.permissions.includes('edit');
+        return <div>{_canEdit && <EditButton />}</div>;
+      `,
+    },
+    // 6. Simple ternary with single variables
+    {
+      code: `
+        return <div>{isLoading ? <Spinner /> : <Content />}</div>;
+      `,
+    },
+    // 7. Simple comparison
+    {
+      code: `
+        return <div>{count > 0 && <Counter value={count} />}</div>;
+      `,
+    },
+    // 8. Single array/object check
+    {
+      code: `
+        return <div>{items.length && <List items={items} />}</div>;
+      `,
+    },
+    // 9. Extracted conditions in different JSX patterns
+    {
+      code: `
+        const _shouldShow = user && !error;
+        const _isEmpty = !data || data.length === 0;
+        return (
+          <div>
+            {_shouldShow && <Component />}
+            <button disabled={!_shouldShow}>Click</button>
+            <Modal open={_isEmpty}>No data</Modal>
+          </div>
+        );
+      `,
+    },
+    // 10. Simple boolean in component props
+    {
+      code: `
+        const isEnabled = true;
+        return <Button disabled={!isEnabled} />;
+      `,
+    },
+    // Edge case: Parentheses that don't add complexity
+    {
+      code: `
+        return <div>{(isLoading) && <Spinner />}</div>;
+      `,
+    },
+    // Simple logical with simple operands
+    {
+      code: `
+        return <div>{user && isActive && <Component />}</div>;
+      `,
+    },
+    // Template literals are acceptable when not overly complex
+    {
+      code: `
+        const message = \`Hello \${user.name}\`;
+        return <div>{user && <Greeting message={message} />}</div>;
+      `,
     },
   ],
 });

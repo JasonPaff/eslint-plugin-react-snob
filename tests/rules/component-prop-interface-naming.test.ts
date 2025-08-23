@@ -742,7 +742,6 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
       `,
     },
 
-
     // Generic type alias with correct naming
     {
       code: `

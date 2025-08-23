@@ -5,6 +5,7 @@ This document describes the testing framework, structure, and conventions for te
 ## Testing Framework
 
 ### Setup
+
 - **Test Framework**: Jest with TypeScript support (`ts-jest`)
 - **ESLint Test Utils**: `@typescript-eslint/rule-tester`
 - **Test Environment**: Node.js
@@ -12,6 +13,7 @@ This document describes the testing framework, structure, and conventions for te
 - **Test Directory**: `tests/` (separate from `src/`)
 
 ### Configuration
+
 ```javascript
 // jest.config.js
 module.exports = {
@@ -62,11 +64,12 @@ tests/
 ├── rules/                    # Rule-specific tests (mirrors src/rules/)
 │   ├── no-inline-styles.test.ts
 │   └── require-jsx-string-braces.test.ts
-│   
+│
 └── CLAUDE.MD                # This documentation file
 ```
 
 ### File Naming Convention
+
 - Test files: `rule-name.test.ts` (matches rule file name)
 - Location: `tests/rules/` (mirrors `src/rules/`)
 - Import path: `../../src/rules/rule-name`
@@ -74,15 +77,16 @@ tests/
 ## RuleTester Configuration
 
 ### Required Parser Options
+
 ```typescript
 const ruleTester = new RuleTester({
   languageOptions: {
     parser: require('@typescript-eslint/parser'),
     parserOptions: {
       ecmaFeatures: {
-        jsx: true,  // Essential for React/JSX rules
+        jsx: true, // Essential for React/JSX rules
       },
-      ecmaVersion: 2020,    // Modern JavaScript features
+      ecmaVersion: 2020, // Modern JavaScript features
       sourceType: 'module', // ES modules
     },
   },
@@ -90,6 +94,7 @@ const ruleTester = new RuleTester({
 ```
 
 ### TypeScript-Specific Configuration (when needed)
+
 ```typescript
 const ruleTester = new RuleTester({
   languageOptions: {
@@ -135,10 +140,11 @@ valid: [
       }
     `,
   },
-]
+];
 ```
 
 #### Valid Test Case Guidelines
+
 - **Correct usage**: Show the proper way to write code according to the rule
 - **Edge cases**: Include cases that might look problematic but should be ignored
 - **Scope limitations**: Test functions that shouldn't be affected (non-React code)
@@ -170,10 +176,11 @@ invalid: [
       },
     ],
   },
-]
+];
 ```
 
 #### Invalid Test Case Structure
+
 - **`code`**: The problematic code that should trigger the rule
 - **`errors`**: Array of expected error objects
   - **`messageId`**: Must match a message ID from the rule's meta.messages
@@ -192,7 +199,7 @@ invalid: [
     errors: [{ messageId: 'requireBraces' }],
     output: '<div className={"text-center"}>Content</div>',
   },
-]
+];
 ```
 
 - **`output`**: Expected code after applying the auto-fix
@@ -200,41 +207,44 @@ invalid: [
 ## Common Test Scenarios for React Rules
 
 ### Component Pattern Testing
+
 ```typescript
 // Test different component declaration styles
 valid: [
   // Function declaration
   { code: 'function MyComponent() { return <div />; }' },
-  
+
   // Arrow function
   { code: 'const MyComponent = () => <div />;' },
-  
+
   // forwardRef
   { code: 'const MyComponent = forwardRef(() => <div />);' },
-  
+
   // Non-component (should be ignored)
   { code: 'function myUtil() { return true; }' },
-]
+];
 ```
 
 ### JSX-Specific Testing
+
 ```typescript
 // Test JSX attributes and expressions
 valid: [
   { code: '<div className="test">Content</div>' },
   { code: '<Component prop={value} />' },
   { code: '<div {...props}>Content</div>' },
-]
+];
 
 invalid: [
   {
     code: '<div style={{ color: "red" }}>Content</div>',
     errors: [{ messageId: 'noInlineStyle' }],
   },
-]
+];
 ```
 
 ### TypeScript Interface Testing
+
 ```typescript
 // Test TypeScript-specific patterns
 valid: [
@@ -246,7 +256,7 @@ valid: [
       const Component = ({ title }: ComponentProps) => <div>{title}</div>;
     `,
   },
-]
+];
 
 invalid: [
   {
@@ -256,23 +266,27 @@ invalid: [
       }
       const Component = ({ title }: ComponentConfig) => <div>{title}</div>;
     `,
-    errors: [{
-      messageId: 'incorrectNaming',
-      data: { expected: 'ComponentProps', actual: 'ComponentConfig' }
-    }],
+    errors: [
+      {
+        messageId: 'incorrectNaming',
+        data: { expected: 'ComponentProps', actual: 'ComponentConfig' },
+      },
+    ],
   },
-]
+];
 ```
 
 ## Testing Best Practices
 
 ### Comprehensive Coverage
+
 - **Happy path**: Test the main scenarios the rule is designed for
 - **Edge cases**: Test boundary conditions and unusual but valid code
 - **Error conditions**: Test various ways the rule can be violated
 - **Scope testing**: Ensure rule doesn't apply where it shouldn't
 
 ### Code Formatting in Tests
+
 ```typescript
 // Multi-line code: Use template literals with proper indentation
 {
@@ -291,11 +305,13 @@ invalid: [
 ```
 
 ### Error Message Testing
+
 - **Always specify `messageId`**: Don't rely on default messages
 - **Test data interpolation**: When messages use `{{placeholder}}`, provide expected data
 - **Multiple errors**: Test scenarios that should report multiple violations
 
 ### Regression Testing
+
 - Add test cases for any bugs discovered and fixed
 - Test complex real-world scenarios, not just simple examples
 - Include tests for reported edge cases from users
@@ -303,21 +319,25 @@ invalid: [
 ## Running Tests
 
 ### All Tests
+
 ```bash
 npm test
 ```
 
 ### Specific Rule Tests
+
 ```bash
 npm test -- --testPathPattern=rule-name
 ```
 
 ### Watch Mode
+
 ```bash
 npm run test:watch
 ```
 
 ### Coverage
+
 ```bash
 npm test -- --coverage
 ```
@@ -326,7 +346,7 @@ npm test -- --coverage
 
 1. **Write failing tests first**: Define expected behavior before implementing
 2. **Start with valid cases**: Establish what should NOT trigger the rule
-3. **Add invalid cases**: Define what SHOULD trigger the rule  
+3. **Add invalid cases**: Define what SHOULD trigger the rule
 4. **Test edge cases**: Consider unusual but valid syntax
 5. **Test error messages**: Ensure messages are helpful and accurate
 6. **Test auto-fixes**: Verify fixes produce correct output

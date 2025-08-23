@@ -5,13 +5,14 @@ This document provides guidelines for creating consistent and comprehensive docu
 ## File Structure and Naming
 
 ### Documentation Location
+
 - Rule documentation goes in `docs/rules/`
 - File naming: Use kebab-case matching the rule name (e.g., `no-inline-styles.md`)
 - One documentation file per rule
 
 ### Documentation Template
 
-```markdown
+````markdown
 # rule-name
 
 Brief one-line description of what the rule does.
@@ -27,11 +28,12 @@ Examples of **incorrect** code for this rule:
 <Component badPattern="example" />
 <div style={{ color: 'red' }}>Content</div>
 ```
+````
 
 Examples of **correct** code for this rule:
 
 ```jsx
-// ✅ Good examples showing the preferred approach  
+// ✅ Good examples showing the preferred approach
 <Component goodPattern={"example"} />
 <div className="red-text">Content</div>
 
@@ -42,8 +44,11 @@ Examples of **correct** code for this rule:
 ## Options
 
 This rule has no options.
+
 <!-- OR -->
+
 This rule accepts the following options:
+
 - `option1` (boolean, default: true): Description of what this option controls
 - `option2` (string, default: "value"): Description of this option
 
@@ -59,7 +64,8 @@ This rule accepts the following options:
   "option2": "custom-value"
 }]
 ```
-```
+
+````
 
 ## Required Documentation Sections
 
@@ -86,7 +92,7 @@ This rule accepts the following options:
 - Add brief comments explaining why each is wrong
 - Ensure examples actually trigger the rule
 
-#### Correct Examples  
+#### Correct Examples
 - Use `✅` emoji prefix for good examples
 - Show the preferred way to write the code
 - Include multiple valid patterns when applicable
@@ -105,7 +111,7 @@ This rule accepts the following options:
 
 ### Writing Style
 - **Concise**: Keep descriptions brief but complete
-- **Clear**: Avoid jargon and complex explanations  
+- **Clear**: Avoid jargon and complex explanations
 - **Consistent**: Use the same terminology throughout
 - **Actionable**: Focus on what developers should do
 
@@ -134,41 +140,48 @@ meta: {
     description: 'Brief one-line description matching the docs',
   }
 }
-```
+````
 
 ### URL References
+
 - The rule's `RuleCreator` URL should point to the documentation
 - URL format: `https://github.com/jasonpaff/eslint-plugin-react-snob/blob/main/docs/rules/${ruleName}.md`
 
 ## Examples by Rule Type
 
 ### Style Rules (type: 'suggestion')
+
 Focus on consistency and readability improvements:
 
-```markdown
+````markdown
 This rule enforces consistent formatting of [specific pattern] to improve code readability and maintainability.
 
 Examples of **incorrect** code for this rule:
+
 ```jsx
 // ❌ Inconsistent style
 <div className="text-center">Content</div>
 ```
+````
 
 Examples of **correct** code for this rule:
+
 ```jsx
-// ✅ Consistent style  
-<div className={"text-center"}>Content</div>
+// ✅ Consistent style
+<div className={'text-center'}>Content</div>
 ```
-```
+
+````
 
 ### Best Practice Rules (type: 'suggestion')
 Emphasize React conventions and maintainability:
 
 ```markdown
 This rule enforces React best practices by ensuring [specific pattern]. This improves component maintainability and follows established React conventions.
-```
+````
 
 ### Problem Prevention Rules (type: 'problem')
+
 Focus on potential errors and bugs:
 
 ```markdown
@@ -183,7 +196,7 @@ Before finalizing rule documentation, verify:
 - [ ] Brief description is clear and under 20 words
 - [ ] Rule Details explains the "why" not just the "what"
 - [ ] Incorrect examples actually violate the rule
-- [ ] Correct examples actually pass the rule  
+- [ ] Correct examples actually pass the rule
 - [ ] Options are documented with types and defaults
 - [ ] Configuration examples use proper JSON syntax
 - [ ] Code examples use realistic React patterns
@@ -193,14 +206,16 @@ Before finalizing rule documentation, verify:
 ## Integration with Development Workflow
 
 ### When Creating Documentation
+
 1. **Create docs first**: Write documentation before implementing the rule to clarify requirements
 2. **Test examples**: Verify all code examples work as expected
 3. **Review alignment**: Ensure docs match rule behavior exactly
 4. **Update configs**: Add the rule to plugin configurations after documenting
 
 ### When Updating Rules
+
 1. **Update docs first**: Modify documentation to reflect new behavior
-2. **Verify examples**: Ensure all examples still work correctly  
+2. **Verify examples**: Ensure all examples still work correctly
 3. **Check options**: Update option documentation if parameters change
 4. **Review consistency**: Maintain consistency with other rule docs
 

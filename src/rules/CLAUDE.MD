@@ -38,6 +38,7 @@ export const ruleName = createRule({
 ## Required Imports
 
 ### Standard Imports
+
 ```typescript
 import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
 ```
@@ -46,6 +47,7 @@ import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
 - **TSESTree**: TypeScript ESTree node types for AST manipulation
 
 ### Additional Utilities (when needed)
+
 ```typescript
 import { AST_NODE_TYPES } from '@typescript-eslint/utils';
 ```
@@ -55,6 +57,7 @@ import { AST_NODE_TYPES } from '@typescript-eslint/utils';
 ### `meta` Object Properties
 
 #### `docs` (Required)
+
 ```typescript
 docs: {
   description: 'Concise one-line description of the rule purpose',
@@ -62,11 +65,13 @@ docs: {
 ```
 
 #### `fixable` (Optional)
+
 - `'code'`: Rule can fix code structure/syntax
-- `'whitespace'`: Rule only fixes whitespace/formatting  
+- `'whitespace'`: Rule only fixes whitespace/formatting
 - `undefined`: Rule cannot provide automatic fixes
 
 #### `messages` (Required)
+
 ```typescript
 messages: {
   messageId: 'Template message with {{placeholder}} for data interpolation',
@@ -75,6 +80,7 @@ messages: {
 ```
 
 #### `schema` (Required)
+
 ```typescript
 schema: [], // Empty array for rules with no options
 schema: [  // JSON Schema for rules with options
@@ -89,6 +95,7 @@ schema: [  // JSON Schema for rules with options
 ```
 
 #### `type` (Required)
+
 - **`'problem'`**: Rule identifies code that will cause errors or unexpected behavior
 - **`'suggestion'`**: Rule suggests better ways of doing things but not errors
 - **`'layout'`**: Rule cares about whitespace, semicolons, commas, and parentheses
@@ -96,6 +103,7 @@ schema: [  // JSON Schema for rules with options
 ## Common AST Node Patterns for React Rules
 
 ### JSX Attribute Detection
+
 ```typescript
 JSXAttribute(node) {
   // Check attribute name
@@ -106,6 +114,7 @@ JSXAttribute(node) {
 ```
 
 ### JSX Expression Container
+
 ```typescript
 JSXExpressionContainer(node) {
   // Check for inline object expressions
@@ -116,6 +125,7 @@ JSXExpressionContainer(node) {
 ```
 
 ### Function Component Detection
+
 ```typescript
 // Function declaration
 FunctionDeclaration(node) {
@@ -126,8 +136,8 @@ FunctionDeclaration(node) {
 
 // Arrow function variable
 VariableDeclarator(node) {
-  if (node.id.type === 'Identifier' && 
-      /^[A-Z]/.test(node.id.name) && 
+  if (node.id.type === 'Identifier' &&
+      /^[A-Z]/.test(node.id.name) &&
       node.init?.type === 'ArrowFunctionExpression') {
     // This is likely a React component
   }
@@ -135,12 +145,12 @@ VariableDeclarator(node) {
 ```
 
 ### TypeScript Interface Detection
+
 ```typescript
 // Interface props pattern
 if (firstParam.type === 'ObjectPattern' && firstParam.typeAnnotation) {
   const typeAnnotation = firstParam.typeAnnotation.typeAnnotation;
-  if (typeAnnotation.type === 'TSTypeReference' && 
-      typeAnnotation.typeName.type === 'Identifier') {
+  if (typeAnnotation.type === 'TSTypeReference' && typeAnnotation.typeName.type === 'Identifier') {
     const interfaceName = typeAnnotation.typeName.name;
     // Work with interface name
   }
@@ -148,12 +158,14 @@ if (firstParam.type === 'ObjectPattern' && firstParam.typeAnnotation) {
 ```
 
 ### forwardRef Pattern Detection
+
 ```typescript
 // Direct forwardRef call
-if (node.init.type === 'CallExpression' &&
-    node.init.callee.type === 'Identifier' && 
-    node.init.callee.name === 'forwardRef') {
-  
+if (
+  node.init.type === 'CallExpression' &&
+  node.init.callee.type === 'Identifier' &&
+  node.init.callee.name === 'forwardRef'
+) {
   // Check type arguments for generic types
   if (node.init.typeArguments && node.init.typeArguments.params.length >= 2) {
     const propsTypeParam = node.init.typeArguments.params[1];
@@ -165,6 +177,7 @@ if (node.init.type === 'CallExpression' &&
 ## Error Reporting Patterns
 
 ### Basic Error Report
+
 ```typescript
 context.report({
   messageId: 'errorMessage',
@@ -173,9 +186,10 @@ context.report({
 ```
 
 ### Error Report with Data
+
 ```typescript
 context.report({
-  messageId: 'errorWithData', 
+  messageId: 'errorWithData',
   node: nodeToHighlight,
   data: {
     actual: actualValue,
@@ -185,6 +199,7 @@ context.report({
 ```
 
 ### Error Report with Auto-fix
+
 ```typescript
 context.report({
   messageId: 'fixableError',
@@ -198,33 +213,33 @@ context.report({
 ## Utility Function Patterns
 
 ### Component Name Extraction
+
 ```typescript
 function extractComponentName(node: TSESTree.Node): string | null {
   if (node.type === 'FunctionDeclaration' && node.id) {
     return node.id.name;
   }
-  
+
   if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier') {
     return node.id.name;
   }
-  
+
   return null;
 }
 ```
 
 ### React Component Detection
+
 ```typescript
 function isComponentFunction(node: TSESTree.Node): boolean {
   if (node.type === 'FunctionDeclaration' && node.id) {
     return /^[A-Z]/.test(node.id.name);
   }
-  
-  if (node.type === 'VariableDeclarator' && 
-      node.id.type === 'Identifier' && 
-      /^[A-Z]/.test(node.id.name)) {
+
+  if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier' && /^[A-Z]/.test(node.id.name)) {
     return true;
   }
-  
+
   return false;
 }
 ```
@@ -232,6 +247,7 @@ function isComponentFunction(node: TSESTree.Node): boolean {
 ## Naming Conventions
 
 ### Rule Names
+
 - Use kebab-case: `props-interface-naming`
 - Be descriptive but concise
 - Follow pattern: `action-target-qualifier`
@@ -240,11 +256,13 @@ function isComponentFunction(node: TSESTree.Node): boolean {
   - `props-interface-naming` (target + context + action)
 
 ### Export Names
+
 - Use camelCase: `propsInterfaceNaming`
 - Convert kebab-case rule name to camelCase
 - Export as named export: `export const ruleName = createRule({...})`
 
 ### Message IDs
+
 - Use camelCase: `incorrectPropsInterfaceName`
 - Be descriptive of the specific error condition
 - Group related messages with common prefix when applicable
@@ -252,16 +270,19 @@ function isComponentFunction(node: TSESTree.Node): boolean {
 ## Rule Categories
 
 ### Style Rules (`type: 'suggestion'`)
+
 - Enforce consistent code style
 - Usually auto-fixable
 - Examples: `require-jsx-string-braces`, `no-inline-styles`
 
-### Best Practice Rules (`type: 'suggestion'`)  
+### Best Practice Rules (`type: 'suggestion'`)
+
 - Enforce React best practices
 - May or may not be auto-fixable
 - Examples: `props-interface-naming`
 
 ### Error Prevention Rules (`type: 'problem'`)
+
 - Prevent runtime errors or bugs
 - Usually not auto-fixable
 - Focus on correctness over style

@@ -32,6 +32,7 @@ Add `react-snob` to the plugins section of your `.eslintrc` configuration file:
 #### Predefined Configurations
 
 **Recommended:**
+
 ```json
 {
   "extends": ["plugin:react-snob/recommended"]
@@ -39,6 +40,7 @@ Add `react-snob` to the plugins section of your `.eslintrc` configuration file:
 ```
 
 **Strict:**
+
 ```json
 {
   "extends": ["plugin:react-snob/strict"]
