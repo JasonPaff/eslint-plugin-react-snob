@@ -1,15 +1,77 @@
 # eslint-plugin-react-snob
 
-To install dependencies:
+An ESLint plugin for React best practices and opinionated code style enforcement.
+
+## Installation
 
 ```bash
-bun install
+npm install eslint-plugin-react-snob --save-dev
 ```
 
-To run:
+## Usage
+
+Add `react-snob` to the plugins section of your `.eslintrc` configuration file:
+
+```json
+{
+  "plugins": ["react-snob"]
+}
+```
+
+Then configure the rules you want to use under the rules section:
+
+```json
+{
+  "rules": {
+    "react-snob/no-inline-styles": "error"
+  }
+}
+```
+
+## Configurations
+
+This plugin provides some predefined configurations:
+
+### Recommended
+
+```json
+{
+  "extends": ["plugin:react-snob/recommended"]
+}
+```
+
+### Strict
+
+```json
+{
+  "extends": ["plugin:react-snob/strict"]
+}
+```
+
+## Supported Rules
+
+- [`react-snob/no-inline-styles`](docs/rules/no-inline-styles.md) - Disallow inline styles in JSX elements
+
+## Development
+
+Install dependencies:
 
 ```bash
-bun run index.ts
+npm install
 ```
 
-This project was created using `bun init` in bun v1.1.7. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+Build the project:
+
+```bash
+npm run build
+```
+
+Run tests:
+
+```bash
+npm test
+```
+
+## License
+
+MIT

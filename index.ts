@@ -1,1 +1,1 @@
-console.log("Hello via Bun!");
+export = require("./src/index");
