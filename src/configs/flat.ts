@@ -1,4 +1,5 @@
 import { componentPropInterfaceNaming } from '../rules/component-prop-interface-naming';
+import { noComplexJsxConditions } from '../rules/no-complex-jsx-conditions';
 import { noInlineStyles } from '../rules/no-inline-styles';
 import { requireJsxStringBraces } from '../rules/require-jsx-string-braces';
 
@@ -6,10 +7,11 @@ import { requireJsxStringBraces } from '../rules/require-jsx-string-braces';
 const plugin = {
   meta: {
     name: 'eslint-plugin-react-snob',
-    version: '0.0.9',
+    version: '0.0.11',
   },
   rules: {
     'component-prop-interface-naming': componentPropInterfaceNaming,
+    'no-complex-jsx-conditions': noComplexJsxConditions,
     'no-inline-styles': noInlineStyles,
     'require-jsx-string-braces': requireJsxStringBraces,
   },
@@ -22,6 +24,7 @@ export const recommended = {
   },
   rules: {
     'react-snob/component-prop-interface-naming': 'error',
+    'react-snob/no-complex-jsx-conditions': 'warn',
     'react-snob/no-inline-styles': 'warn',
     'react-snob/require-jsx-string-braces': 'error',
   },
@@ -33,6 +36,7 @@ export const strict = {
   },
   rules: {
     'react-snob/component-prop-interface-naming': 'error',
+    'react-snob/no-complex-jsx-conditions': 'error',
     'react-snob/no-inline-styles': 'error',
     'react-snob/require-jsx-string-braces': 'error',
   },
