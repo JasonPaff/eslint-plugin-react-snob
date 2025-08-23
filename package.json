@@ -9,11 +9,21 @@
     "react",
     "typescript"
   ],
-  "author": "Your Name",
+  "author": "Jason Paff <jason@jasonpaff.com>",
+  "homepage": "https://github.com/jasonpaff/eslint-plugin-react-snob#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jasonpaff/eslint-plugin-react-snob.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jasonpaff/eslint-plugin-react-snob/issues"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "docs",
+    "README.md"
   ],
   "scripts": {
     "build": "tsc",
