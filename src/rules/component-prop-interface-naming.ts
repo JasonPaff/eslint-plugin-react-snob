@@ -34,7 +34,17 @@ export const componentPropInterfaceNaming = createRule({
       componentNode: TSESTree.FunctionDeclaration | TSESTree.VariableDeclarator,
       componentName: string
     ): void {
-      const expectedInterfaceName = `${componentName}Props`;
+      // Generate possible valid interface names
+      const fullExpectedName = `${componentName}Props`;
+      let baseExpectedName = fullExpectedName;
+      
+      // If component name ends with "Component" or "FunctionComponent", 
+      // also accept interface without those suffixes
+      if (componentName.endsWith('Component')) {
+        const baseName = componentName.replace(/(?:Function)?Component$/, '');
+        baseExpectedName = `${baseName}Props`;
+      }
+      
       let actualInterfaceName: string | null = null;
 
       // Handle function declarations
@@ -92,8 +102,26 @@ export const componentPropInterfaceNaming = createRule({
         }
       }
 
+      // Handle variable declarator with type annotation (e.g., FunctionComponent<PropsType>)
+      if (componentNode.type === 'VariableDeclarator' && componentNode.id.type === 'Identifier') {
+        if (componentNode.id.typeAnnotation && componentNode.id.typeAnnotation.typeAnnotation.type === 'TSTypeReference') {
+          const typeRef = componentNode.id.typeAnnotation.typeAnnotation;
+          if (typeRef.typeArguments && typeRef.typeArguments.params.length > 0) {
+            const firstTypeParam = typeRef.typeArguments.params[0];
+            if (firstTypeParam.type === 'TSTypeReference' && firstTypeParam.typeName.type === 'Identifier') {
+              actualInterfaceName = firstTypeParam.typeName.name;
+            }
+          }
+        }
+      }
+
       // Report error if interface name doesn't match expected pattern
-      if (actualInterfaceName && actualInterfaceName !== expectedInterfaceName) {
+      if (actualInterfaceName && 
+          actualInterfaceName !== fullExpectedName && 
+          actualInterfaceName !== baseExpectedName) {
+        // Always suggest the full component name for consistency in error messages
+        const expectedInterfaceName = fullExpectedName;
+        
         context.report({
           data: {
             actual: actualInterfaceName,

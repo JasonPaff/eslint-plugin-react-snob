@@ -38,7 +38,33 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         },
       ],
     },
-    
+
+    // Arrow function component with props declaration as a generic on the function type
+    {
+      code: `
+    import { FunctionComponent } from 'react';
+
+    interface DogPenOptions {
+      name: string;
+    }
+
+    export const DogPenFunctionComponent: FunctionComponent<DogPenOptions> = ({ name }) => {
+      console.log(name);
+      return <></>;
+    };
+  `,
+      errors: [
+        {
+          data: {
+            actual: 'DogPenOptions',
+            component: 'DogPenFunctionComponent',
+            expected: 'DogPenFunctionComponentProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
+
     // Arrow function component with incorrectly named props interface
     {
       code: `
@@ -61,7 +87,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         },
       ],
     },
-    
+
     // forwardRef with incorrectly named props interface (generic type)
     {
       code: `
@@ -83,7 +109,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         },
       ],
     },
-    
+
     // memo wrapped component with incorrect naming
     {
       code: `
@@ -105,7 +131,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         },
       ],
     },
-    
+
     // Complex component name with incorrect interface naming
     {
       code: `
@@ -128,7 +154,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         },
       ],
     },
-    
+
     // Component with Props suffix but wrong base name
     {
       code: `
@@ -150,7 +176,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         },
       ],
     },
-    
+
     // Arrow function with function expression syntax
     {
       code: `
@@ -173,7 +199,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
       ],
     },
   ],
-  
+
   valid: [
     // Function component with correctly named props interface
     {
@@ -186,7 +212,23 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         }
       `,
     },
-    
+
+    // Arrow function component with props declaration as a generic on the function type
+    {
+      code: `
+    import { FunctionComponent } from 'react';
+
+    interface DogPenProps {
+      name: string;
+    }
+
+    export const DogPenFunctionComponent: FunctionComponent<DogPenProps> = ({ name }) => {
+      console.log(name);
+      return <></>;
+    };
+  `,
+    },
+
     // Arrow function component with correctly named props interface
     {
       code: `
@@ -199,7 +241,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         };
       `,
     },
-    
+
     // forwardRef with correctly named props interface
     {
       code: `
@@ -211,7 +253,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         });
       `,
     },
-    
+
     // Component with no props (should be ignored)
     {
       code: `
@@ -220,7 +262,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         }
       `,
     },
-    
+
     // Arrow function component with no props (should be ignored)
     {
       code: `
@@ -229,7 +271,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         };
       `,
     },
-    
+
     // Non-component function (should be ignored)
     {
       code: `
@@ -241,7 +283,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         }
       `,
     },
-    
+
     // Component with destructured props but no type annotation (should be ignored)
     {
       code: `
@@ -250,7 +292,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         }
       `,
     },
-    
+
     // Component with inline type annotation (should be ignored as it's not an interface)
     {
       code: `
@@ -259,7 +301,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         }
       `,
     },
-    
+
     // memo wrapped component with correct naming
     {
       code: `
