@@ -1,11 +1,9 @@
 import { TSESTree } from '@typescript-eslint/utils';
+
 import { createRule, extractComponentName, isComponentFunction, findInterfaceNamesInTypeReference } from '../utils';
 
 export const componentPropInterfaceNaming = createRule({
   create(context) {
-
-
-
     function checkComponentPropsInterface(
       componentNode: TSESTree.FunctionDeclaration | TSESTree.VariableDeclarator,
       componentName: string

@@ -1,6 +1,12 @@
 import { TSESTree, AST_NODE_TYPES } from '@typescript-eslint/utils';
-import { createRule, countLogicalOperators, hasTemplateLiteral, hasLogicalAssignment, isComplexOperand } from '../utils';
 
+import {
+  createRule,
+  countLogicalOperators,
+  hasTemplateLiteral,
+  hasLogicalAssignment,
+  isComplexOperand,
+} from '../utils';
 
 function hasComplexTernaryCondition(node: TSESTree.ConditionalExpression): boolean {
   // Check if test condition has logical operators
@@ -68,9 +74,6 @@ function hasComplexOperandsInChain(node: TSESTree.LogicalExpression): boolean {
 
   return traverseLogical(node);
 }
-
-
-
 
 export const noComplexJsxConditions = createRule({
   create(context) {

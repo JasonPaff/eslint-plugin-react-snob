@@ -5,12 +5,7 @@ export { createRule } from './rule-creator';
 export { extractComponentName, isComponentFunction } from './component-utils';
 
 // AST traversal and expression analysis
-export { 
-  countLogicalOperators, 
-  hasTemplateLiteral, 
-  hasLogicalAssignment, 
-  isComplexOperand 
-} from './ast-traversal';
+export { countLogicalOperators, hasTemplateLiteral, hasLogicalAssignment, isComplexOperand } from './ast-traversal';
 
 // TypeScript-specific utilities
 export { findInterfaceNamesInTypeReference } from './typescript-utils';

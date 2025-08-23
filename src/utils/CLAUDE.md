@@ -32,7 +32,9 @@ import { createRule } from '../utils';
 
 export const myRule = createRule({
   name: 'my-rule',
-  meta: { /* ... */ },
+  meta: {
+    /* ... */
+  },
   defaultOptions: [],
   create(context) {
     // Rule implementation
@@ -41,6 +43,7 @@ export const myRule = createRule({
 ```
 
 **Benefits**:
+
 - Consistent documentation URL generation for all rules
 - Type safety with TypeScript ESTree
 - Standardized rule structure
@@ -64,6 +67,7 @@ FunctionDeclaration(node) {
 ```
 
 **Supports**:
+
 - Function declarations: `function MyComponent() {}`
 - Variable declarators: `const MyComponent = () => {}`
 
@@ -83,6 +87,7 @@ FunctionDeclaration(node) {
 ```
 
 **Detection Rules**:
+
 - Function name must start with uppercase letter (PascalCase)
 - Works with both function declarations and variable declarators
 
@@ -105,6 +110,7 @@ JSXExpressionContainer(node) {
 ```
 
 **Counts**:
+
 - Logical operators: `&&`, `||`
 - Logical assignment operators: `||=`, `&&=`, `??=`
 - Handles nested expressions and complex AST structures
@@ -123,6 +129,7 @@ if (hasTemplateLiteral(expression) && countLogicalOperators(expression) > 0) {
 ```
 
 **Detection**:
+
 - Recursively searches through all expression types
 - Finds template literals at any nesting level
 
@@ -153,6 +160,7 @@ import { isComplexOperand } from '../utils';
 ```
 
 **Considers Complex**:
+
 - Chained property access (`a.b.c`)
 - Function calls with arguments
 - Binary expressions
@@ -170,13 +178,14 @@ import { findInterfaceNamesInTypeReference } from '../utils';
 
 if (typeAnnotation.type === 'TSTypeReference') {
   const interfaces = findInterfaceNamesInTypeReference(typeAnnotation);
-  interfaces.forEach(name => {
+  interfaces.forEach((name) => {
     // Process each interface name
   });
 }
 ```
 
 **Features**:
+
 - Extracts main type reference names
 - Recursively processes generic type arguments
 - Returns all interface names found in the type structure
