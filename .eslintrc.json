@@ -1,0 +1,31 @@
+{
+  "env": {
+    "node": true,
+    "es2022": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint", "perfectionist"],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "perfectionist/sort-imports": "error",
+    "perfectionist/sort-objects": "error"
+  },
+  "overrides": [
+    {
+      "files": ["tests/**/*.ts"],
+      "env": {
+        "jest": true
+      }
+    }
+  ]
+}

@@ -1,30 +1,19 @@
 import { RuleTester } from "@typescript-eslint/rule-tester";
+
 import { noInlineStyles } from "../../src/rules/no-inline-styles";
 
 const ruleTester = new RuleTester({
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    ecmaVersion: 2020,
-    sourceType: "module",
     ecmaFeatures: {
       jsx: true,
     },
+    ecmaVersion: 2020,
+    sourceType: "module",
   },
 });
 
 ruleTester.run("no-inline-styles", noInlineStyles, {
-  valid: [
-    {
-      code: '<div className="my-class">Content</div>',
-    },
-    {
-      code: '<div>Content</div>',
-    },
-    {
-      code: '<div data-style="something">Content</div>',
-    },
-  ],
-
   invalid: [
     {
       code: '<div style={{ color: "red" }}>Content</div>',
@@ -43,12 +32,24 @@ ruleTester.run("no-inline-styles", noInlineStyles, {
       ],
     },
     {
-      code: '<button style={buttonStyles}>Click me</button>',
+      code: "<button style={buttonStyles}>Click me</button>",
       errors: [
         {
           messageId: "noInlineStyle",
         },
       ],
+    },
+  ],
+
+  valid: [
+    {
+      code: '<div className="my-class">Content</div>',
+    },
+    {
+      code: "<div>Content</div>",
+    },
+    {
+      code: '<div data-style="something">Content</div>',
     },
   ],
 });
