@@ -4,7 +4,7 @@ Enforce component prop interfaces follow ComponentNameProps naming convention.
 
 ## Rule Details
 
-This rule enforces that all React component prop interfaces follow the specific naming convention `ComponentNameProps`, where `ComponentName` matches the exact name of the component. This improves code consistency, makes prop interfaces easily identifiable, and follows common React TypeScript conventions.
+This rule enforces that all React component prop interfaces follow the specific naming convention `ComponentNameProps`, where `ComponentName` matches the exact name of the component. For components with names ending in "Component" or "FunctionComponent", the rule accepts both the full component name (e.g., `MyFunctionComponentProps`) and the base name (e.g., `MyProps`) for flexibility. This improves code consistency, makes prop interfaces easily identifiable, and follows common React TypeScript conventions.
 
 Examples of **incorrect** code for this rule:
 
@@ -47,6 +47,22 @@ const Input = forwardRef<HTMLInputElement, InputConfig>(
   ({ placeholder, type }, ref) => (
     <input ref={ref} placeholder={placeholder} type={type} />
   )
+);
+
+// ❌ TypeScript generic type annotation with wrong naming
+interface DogPenOptions {  // Should be DogPenProps or DogPenFunctionComponentProps
+  name: string;
+}
+const DogPenFunctionComponent: FunctionComponent<DogPenOptions> = ({ name }) => (
+  <div>{name}</div>
+);
+
+// ❌ Complex nested generic with incorrect props interface
+interface UserSettings {  // Should be UserComponentProps or UserProps
+  id: number;
+}
+const UserComponent: FunctionComponent<ChildWrapper<UserSettings>> = ({ id }) => (
+  <div>User {id}</div>
 );
 ```
 
@@ -111,26 +127,84 @@ interface MemoComponentProps {
 const MemoComponent = memo(({ value }: MemoComponentProps) => (
   <div>{value}</div>
 ));
+
+// ✅ TypeScript generic type annotations
+interface DogPenProps {
+  name: string;
+}
+const DogPenFunctionComponent: FunctionComponent<DogPenProps> = ({ name }) => (
+  <div>{name}</div>
+);
+
+// ✅ Flexible naming for components ending in "Component"
+interface UserProps {  // Acceptable for UserComponent
+  id: number;
+}
+function UserComponent({ id }: UserProps) {
+  return <div>User {id}</div>;
+}
+
+// ✅ Also acceptable: full component name
+interface UserComponentProps {  // Also acceptable for UserComponent
+  id: number;
+}
+function UserComponent({ id }: UserComponentProps) {
+  return <div>User {id}</div>;
+}
+
+// ✅ Complex nested generic types
+interface MyComponentProps {
+  title: string;
+}
+const MyComponent: FunctionComponent<ChildWrapper<MyComponentProps>> = ({ title }) => (
+  <div>{title}</div>
+);
 ```
+
+## Naming Convention Details
+
+### Basic Convention
+The rule enforces that prop interfaces follow the pattern `ComponentNameProps` where `ComponentName` matches the component's exact name.
+
+### Flexible Naming for Components Ending in "Component"
+For components with names ending in "Component" or "FunctionComponent", the rule accepts two naming patterns:
+
+1. **Full component name**: `MyFunctionComponentProps` for component `MyFunctionComponent`
+2. **Base component name**: `MyProps` for component `MyFunctionComponent`
+
+This flexibility accommodates different coding styles while maintaining consistency.
+
+### TypeScript Generic Type Support
+The rule handles various TypeScript generic patterns:
+
+- **Direct generic annotation**: `FunctionComponent<PropsInterface>`
+- **Nested generics**: `FunctionComponent<Wrapper<PropsInterface>>`
+- **forwardRef generics**: `forwardRef<Element, PropsInterface>`
+
+When analyzing nested generics, the rule searches for interfaces ending in common suffixes (Props, Options, Config, Settings) and validates against the expected naming pattern.
 
 ## Rule Coverage
 
 This rule works with:
 
-- **Function declarations**: `function ComponentName(props) { ... }`
-- **Arrow function components**: `const ComponentName = (props) => { ... }`
-- **Function expressions**: `const ComponentName = function(props) { ... }`
+- **Function declarations**: `function ComponentName({ prop }: ComponentNameProps) { ... }`
+- **Arrow function components**: `const ComponentName = ({ prop }: ComponentNameProps) => { ... }`
+- **Function expressions**: `const ComponentName = function({ prop }: ComponentNameProps) { ... }`
 - **forwardRef components**: `forwardRef<RefType, PropsType>((props, ref) => { ... })`
+- **forwardRef with generics**: `forwardRef<HTMLElement, ComponentProps>(...)`
 - **Higher-order components**: Components wrapped in `memo`, `forwardRef`, etc.
-- **Destructured props**: Both `({ prop1, prop2 }: PropsInterface)` and `(props: PropsInterface)`
-- **TypeScript generics**: Handles forwardRef and other generic patterns
+- **TypeScript generic type annotations**: `const Component: FunctionComponent<PropsType> = ...`
+- **Complex nested generic types**: `FunctionComponent<Wrapper<PropsType>>` and similar patterns
+- **Flexible component naming**: Accepts both `ComponentProps` and `ComponentFunctionComponentProps` for components ending in "Component"
+- **Multiple interface suffix detection**: Recognizes Props, Options, Config, and Settings suffixes in nested generics
 
 This rule does **not** apply to:
 
 - Functions that don't start with a capital letter (non-components)
-- Components without typed props
+- Components without typed props or type annotations
 - Components with inline type annotations `({ prop }: { prop: string })`
-- Non-TypeScript codebases
+- Components that use type aliases directly in parameters without interface/type declarations
+- Non-TypeScript codebases (`.js`, `.jsx` files)
 
 ## Options
 

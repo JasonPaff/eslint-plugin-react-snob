@@ -252,7 +252,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
     // Arrow function component with props type passed as last generic parameter
     {
       code: `
-        type ArrowFunctionComponentPassedAsLastGenericOptions {
+        type ArrowFunctionComponentPassedAsLastGenericOptions = {
           name: string;
         };
 
@@ -423,7 +423,7 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
     // Arrow function component with props type passed as last generic parameter (correct naming)
     {
       code: `
-        type ArrowFunctionComponentPassedAsLastGenericProps {
+        type ArrowFunctionComponentPassedAsLastGenericProps = {
           name: string;
         };
 

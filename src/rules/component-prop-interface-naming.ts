@@ -30,6 +30,26 @@ export const componentPropInterfaceNaming = createRule({
       return false;
     }
 
+    function findInterfaceNamesInTypeReference(typeRef: TSESTree.TSTypeReference): string[] {
+      const interfaceNames: string[] = [];
+      
+      // Check if the main type reference is an identifier
+      if (typeRef.typeName.type === 'Identifier') {
+        interfaceNames.push(typeRef.typeName.name);
+      }
+      
+      // Recursively check type arguments
+      if (typeRef.typeArguments && typeRef.typeArguments.params.length > 0) {
+        for (const param of typeRef.typeArguments.params) {
+          if (param.type === 'TSTypeReference') {
+            interfaceNames.push(...findInterfaceNamesInTypeReference(param));
+          }
+        }
+      }
+      
+      return interfaceNames;
+    }
+
     function checkComponentPropsInterface(
       componentNode: TSESTree.FunctionDeclaration | TSESTree.VariableDeclarator,
       componentName: string
@@ -108,8 +128,22 @@ export const componentPropInterfaceNaming = createRule({
           const typeRef = componentNode.id.typeAnnotation.typeAnnotation;
           if (typeRef.typeArguments && typeRef.typeArguments.params.length > 0) {
             const firstTypeParam = typeRef.typeArguments.params[0];
-            if (firstTypeParam.type === 'TSTypeReference' && firstTypeParam.typeName.type === 'Identifier') {
-              actualInterfaceName = firstTypeParam.typeName.name;
+            if (firstTypeParam.type === 'TSTypeReference') {
+              // Find all interface names in the type reference (including nested ones)
+              const interfaceNames = findInterfaceNamesInTypeReference(firstTypeParam);
+              
+              // Look for an interface name that matches the expected patterns
+              for (const name of interfaceNames) {
+                if (name.endsWith('Props') || name.endsWith('Options') || name.endsWith('Config') || name.endsWith('Settings')) {
+                  actualInterfaceName = name;
+                  break;
+                }
+              }
+              
+              // If no props-like interface found, use the first one (for direct references)
+              if (!actualInterfaceName && firstTypeParam.typeName.type === 'Identifier') {
+                actualInterfaceName = firstTypeParam.typeName.name;
+              }
             }
           }
         }
