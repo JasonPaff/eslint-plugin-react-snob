@@ -132,13 +132,13 @@ function containsJSX(node: TSESTree.Node, visited: Set<TSESTree.Node> = new Set(
   for (const key in node) {
     if (key === 'parent') continue; // Skip parent references to avoid cycles
 
-    const value = (node as Record<string, unknown>)[key];
+    const value = (node as unknown as Record<string, unknown>)[key];
     if (value && typeof value === 'object') {
       if (Array.isArray(value)) {
-        if (value.some((item) => item && typeof item === 'object' && containsJSX(item, visited))) {
+        if (value.some((item) => item && typeof item === 'object' && 'type' in item && containsJSX(item as TSESTree.Node, visited))) {
           return true;
         }
-      } else if (containsJSX(value, visited)) {
+      } else if ('type' in value && containsJSX(value as TSESTree.Node, visited)) {
         return true;
       }
     }
@@ -176,7 +176,7 @@ export const requireDerivedConditionalPrefix = createRule({
 
       if (!derivedConditionals.has(variableName)) return;
 
-      let parent = node.parent;
+      let parent: TSESTree.Node | null = node.parent;
 
       // Walk up the AST to check for JSX conditional contexts
       while (parent) {
@@ -244,7 +244,7 @@ export const requireDerivedConditionalPrefix = createRule({
           }
         }
 
-        parent = parent.parent;
+        parent = parent.parent || null;
       }
     }
 

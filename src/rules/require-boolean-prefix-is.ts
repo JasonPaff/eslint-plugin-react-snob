@@ -82,6 +82,8 @@ function isUseStateWithBoolean(node: TSESTree.CallExpression): boolean {
   if (node.arguments.length === 0) return false;
 
   const firstArg = node.arguments[0];
+  if (firstArg.type === 'SpreadElement') return false;
+  
   return isBooleanLiteral(firstArg) || isBooleanExpression(firstArg);
 }
 
@@ -109,7 +111,7 @@ export const requireBooleanPrefixIs = createRule({
         node: TSESTree.Identifier | TSESTree.ObjectPattern
       ) {
         // Skip if this is already handled by the component-specific rule above
-        let parent = node.parent;
+        let parent: TSESTree.Node | null = node.parent;
         while (parent) {
           if (
             parent.type === 'VariableDeclarator' &&
@@ -118,7 +120,7 @@ export const requireBooleanPrefixIs = createRule({
           ) {
             return; // This is handled by the component-specific rule
           }
-          parent = parent.parent;
+          parent = parent.parent || null;
         }
 
         if (node.type === 'ObjectPattern') {
@@ -138,7 +140,7 @@ export const requireBooleanPrefixIs = createRule({
                     member.key.name === propName
                 );
 
-                if (typeMember && typeMember.typeAnnotation && isBooleanType(typeMember.typeAnnotation)) {
+                if (typeMember && 'typeAnnotation' in typeMember && typeMember.typeAnnotation && isBooleanType(typeMember.typeAnnotation)) {
                   reportBooleanNaming(prop.value, prop.value.name);
                 }
               }
@@ -166,7 +168,7 @@ export const requireBooleanPrefixIs = createRule({
       ) {
         // Find the forwardRef call expression to get the generic type information
         let forwardRefCall: TSESTree.CallExpression | null = null;
-        let parent = node.parent;
+        let parent: TSESTree.Node | null = node.parent;
         while (parent) {
           if (
             parent.type === 'CallExpression' &&
@@ -176,7 +178,7 @@ export const requireBooleanPrefixIs = createRule({
             forwardRefCall = parent;
             break;
           }
-          parent = parent.parent;
+          parent = parent.parent || null;
         }
 
         if (forwardRefCall && forwardRefCall.typeArguments && forwardRefCall.typeArguments.params.length >= 2) {
@@ -213,7 +215,7 @@ export const requireBooleanPrefixIs = createRule({
                     member.key.name === propName
                 );
 
-                if (typeMember && typeMember.typeAnnotation && isBooleanType(typeMember.typeAnnotation)) {
+                if (typeMember && 'typeAnnotation' in typeMember && typeMember.typeAnnotation && isBooleanType(typeMember.typeAnnotation)) {
                   reportBooleanNaming(prop.value, prop.value.name);
                 }
               }
@@ -243,7 +245,7 @@ export const requireBooleanPrefixIs = createRule({
                     member.key.name === propName
                 );
 
-                if (typeMember && typeMember.typeAnnotation && isBooleanType(typeMember.typeAnnotation)) {
+                if (typeMember && 'typeAnnotation' in typeMember && typeMember.typeAnnotation && isBooleanType(typeMember.typeAnnotation)) {
                   reportBooleanNaming(prop.value, prop.value.name);
                 }
               }
@@ -266,7 +268,12 @@ export const requireBooleanPrefixIs = createRule({
         // Check if value is boolean
         if (
           node.value &&
-          (isBooleanLiteral(node.value) || (node.value.type !== 'Identifier' && isBooleanExpression(node.value)))
+          node.value.type !== 'AssignmentPattern' &&
+          'type' in node.value &&
+          (isBooleanLiteral(node.value as TSESTree.Expression) || 
+           (node.value.type !== 'Identifier' && 
+            node.value.type !== 'TSEmptyBodyFunctionExpression' &&
+            isBooleanExpression(node.value as TSESTree.Expression)))
         ) {
           reportBooleanNaming(node, name);
         }
@@ -358,7 +365,7 @@ export const requireBooleanPrefixIs = createRule({
                     member.key.name === propName
                 );
 
-                if (typeMember && typeMember.typeAnnotation && isBooleanType(typeMember.typeAnnotation)) {
+                if (typeMember && 'typeAnnotation' in typeMember && typeMember.typeAnnotation && isBooleanType(typeMember.typeAnnotation)) {
                   reportBooleanNaming(prop.value, prop.value.name);
                 }
               }
