@@ -86,13 +86,25 @@ export const componentPropInterfaceNaming = createRule({
         if (componentNode.init.type === 'ArrowFunctionExpression' || componentNode.init.type === 'FunctionExpression') {
           functionNode = componentNode.init;
         }
-        // Arrow function within forwardRef
+        // Arrow function within forwardRef, memo, etc.
         else if (componentNode.init.type === 'CallExpression') {
           // Handle forwardRef, memo, etc.
           if (componentNode.init.arguments.length > 0) {
-            const firstArg = componentNode.init.arguments[0];
-            if (firstArg.type === 'ArrowFunctionExpression' || firstArg.type === 'FunctionExpression') {
-              functionNode = firstArg;
+            let callExpression = componentNode.init;
+            
+            // Handle nested calls like memo(forwardRef(...))
+            while (callExpression && callExpression.type === 'CallExpression') {
+              const firstArg = callExpression.arguments[0];
+              
+              if (firstArg.type === 'ArrowFunctionExpression' || firstArg.type === 'FunctionExpression') {
+                functionNode = firstArg;
+                break;
+              } else if (firstArg.type === 'CallExpression') {
+                // Continue unwrapping nested calls
+                callExpression = firstArg;
+              } else {
+                break;
+              }
             }
           }
         }
@@ -107,17 +119,30 @@ export const componentPropInterfaceNaming = createRule({
           }
         }
 
-        // Handle forwardRef with generics
-        if (
-          componentNode.init.type === 'CallExpression' &&
-          componentNode.init.callee.type === 'Identifier' &&
-          componentNode.init.callee.name === 'forwardRef' &&
-          componentNode.init.typeArguments &&
-          componentNode.init.typeArguments.params.length >= 2
-        ) {
-          const propsTypeParam = componentNode.init.typeArguments.params[1];
-          if (propsTypeParam.type === 'TSTypeReference' && propsTypeParam.typeName.type === 'Identifier') {
-            actualInterfaceName = propsTypeParam.typeName.name;
+        // Handle forwardRef with generics (including nested in memo, etc.)
+        if (componentNode.init.type === 'CallExpression') {
+          let callExpression = componentNode.init;
+          
+          // Search for forwardRef in nested calls
+          while (callExpression && callExpression.type === 'CallExpression') {
+            if (callExpression.callee.type === 'Identifier' && 
+                callExpression.callee.name === 'forwardRef' &&
+                callExpression.typeArguments &&
+                callExpression.typeArguments.params.length >= 2) {
+              const propsTypeParam = callExpression.typeArguments.params[1];
+              if (propsTypeParam.type === 'TSTypeReference' && propsTypeParam.typeName.type === 'Identifier') {
+                actualInterfaceName = propsTypeParam.typeName.name;
+              }
+              break;
+            }
+            
+            // Continue searching in nested calls
+            const firstArg = callExpression.arguments[0];
+            if (firstArg && firstArg.type === 'CallExpression') {
+              callExpression = firstArg;
+            } else {
+              break;
+            }
           }
         }
       }

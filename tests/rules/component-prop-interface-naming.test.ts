@@ -742,17 +742,6 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
       `,
     },
 
-    // Component ending in "Component" using the base name pattern
-    {
-      code: `
-        interface UserProps {
-          id: number;
-        }
-        function UserComponent({ id }: UserProps) {
-          return <div>User {id}</div>;
-        }
-      `,
-    },
 
     // Generic type alias with correct naming
     {

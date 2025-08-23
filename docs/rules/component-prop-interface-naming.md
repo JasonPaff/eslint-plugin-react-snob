@@ -64,6 +64,35 @@ interface UserSettings {  // Should be UserComponentProps or UserProps
 const UserComponent: FunctionComponent<ChildWrapper<UserSettings>> = ({ id }) => (
   <div>User {id}</div>
 );
+
+// ❌ Generic type parameters with wrong naming
+interface ButtonConfig<T> {  // Should be ButtonProps<T>
+  onClick: () => void;
+  data: T;
+}
+function Button<T>({ onClick, data }: ButtonConfig<T>) {
+  return <button onClick={onClick}>Click me</button>;
+}
+
+// ❌ Type aliases with incorrect naming
+type CardData = {  // Should be CardProps
+  title: string;
+  content: string;
+};
+const Card = ({ title, content }: CardData) => (
+  <div>
+    <h3>{title}</h3>
+    <p>{content}</p>
+  </div>
+);
+
+// ❌ Nested forwardRef with memo and wrong naming
+interface InputSettings {  // Should be InputProps
+  placeholder: string;
+}
+const Input = memo(forwardRef<HTMLInputElement, InputSettings>(
+  ({ placeholder }, ref) => <input ref={ref} placeholder={placeholder} />
+));
 ```
 
 Examples of **correct** code for this rule:
@@ -136,6 +165,14 @@ const DogPenFunctionComponent: FunctionComponent<DogPenProps> = ({ name }) => (
   <div>{name}</div>
 );
 
+// ✅ Alternative full component name for components ending in "Component"
+interface DogPenFunctionComponentProps {
+  name: string;
+}
+const DogPenFunctionComponent: FunctionComponent<DogPenFunctionComponentProps> = ({ name }) => (
+  <div>{name}</div>
+);
+
 // ✅ Flexible naming for components ending in "Component"
 interface UserProps {  // Acceptable for UserComponent
   id: number;
@@ -159,6 +196,35 @@ interface MyComponentProps {
 const MyComponent: FunctionComponent<ChildWrapper<MyComponentProps>> = ({ title }) => (
   <div>{title}</div>
 );
+
+// ✅ Generic type parameters with correct naming
+interface ButtonProps<T> {
+  onClick: () => void;
+  data: T;
+}
+function Button<T>({ onClick, data }: ButtonProps<T>) {
+  return <button onClick={onClick}>Click me</button>;
+}
+
+// ✅ Type aliases with correct naming
+type CardProps = {
+  title: string;
+  content: string;
+};
+const Card = ({ title, content }: CardProps) => (
+  <div>
+    <h3>{title}</h3>
+    <p>{content}</p>
+  </div>
+);
+
+// ✅ Nested forwardRef with memo and correct naming
+interface InputProps {
+  placeholder: string;
+}
+const Input = memo(forwardRef<HTMLInputElement, InputProps>(
+  ({ placeholder }, ref) => <input ref={ref} placeholder={placeholder} />
+));
 ```
 
 ## Naming Convention Details
@@ -180,8 +246,10 @@ The rule handles various TypeScript generic patterns:
 - **Direct generic annotation**: `FunctionComponent<PropsInterface>`
 - **Nested generics**: `FunctionComponent<Wrapper<PropsInterface>>`
 - **forwardRef generics**: `forwardRef<Element, PropsInterface>`
+- **Generic type parameters**: `Button<T>({ data }: ButtonConfig<T>)` where ButtonConfig is a generic type
+- **Complex nested generic types**: `FunctionComponent<ChildWrapper<PropsInterface>>` with deep nesting
 
-When analyzing nested generics, the rule searches for interfaces ending in common suffixes (Props, Options, Config, Settings) and validates against the expected naming pattern.
+When analyzing nested generics, the rule searches for interfaces ending in common suffixes (Props, Options, Config, Settings) and validates against the expected naming pattern. For generic type parameters, the rule identifies the base type name (without generic parameters) when checking naming conventions.
 
 ## Rule Coverage
 
@@ -193,10 +261,14 @@ This rule works with:
 - **forwardRef components**: `forwardRef<RefType, PropsType>((props, ref) => { ... })`
 - **forwardRef with generics**: `forwardRef<HTMLElement, ComponentProps>(...)`
 - **Higher-order components**: Components wrapped in `memo`, `forwardRef`, etc.
+- **Nested higher-order components**: `memo(forwardRef<Element, Props>(...))` and similar patterns
 - **TypeScript generic type annotations**: `const Component: FunctionComponent<PropsType> = ...`
 - **Complex nested generic types**: `FunctionComponent<Wrapper<PropsType>>` and similar patterns
+- **Generic type parameters**: `Component<T>({ data }: PropsType<T>)` with generic interfaces/types
+- **Type aliases**: Both `interface ComponentProps` and `type ComponentProps` patterns
 - **Flexible component naming**: Accepts both `ComponentProps` and `ComponentFunctionComponentProps` for components ending in "Component"
 - **Multiple interface suffix detection**: Recognizes Props, Options, Config, and Settings suffixes in nested generics
+- **Exported components**: Both `export function` and `export default function` declarations
 
 This rule does **not** apply to:
 
