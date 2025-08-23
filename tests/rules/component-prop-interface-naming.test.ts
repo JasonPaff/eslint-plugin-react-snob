@@ -248,6 +248,32 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         },
       ],
     },
+
+    // Arrow function component with props type passed as last generic parameter
+    {
+      code: `
+        type ArrowFunctionComponentPassedAsLastGenericOptions {
+          name: string;
+        };
+
+        export const ArrowFunctionComponentPassedAsLastGeneric: FunctionComponent<
+         Children<ArrowFunctionComponentPassedAsLastGenericOptions>
+        > = ({ children, name }) => {
+          console.log(name);
+          return <></>;
+        };
+      `,
+      errors: [
+        {
+          data: {
+            actual: 'ArrowFunctionComponentPassedAsLastGenericOptions',
+            component: 'ArrowFunctionComponentPassedAsLastGeneric',
+            expected: 'ArrowFunctionComponentPassedAsLastGenericProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
   ],
 
   valid: [
@@ -388,6 +414,22 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         };
 
         export const ArrowFunctionComponentPassedAsFirstGeneric = ({ children, name }: ArrowFunctionComponentPassedAsFirstGenericProps<Children>) => {
+          console.log(name);
+          return <></>;
+        };
+      `,
+    },
+
+    // Arrow function component with props type passed as last generic parameter (correct naming)
+    {
+      code: `
+        type ArrowFunctionComponentPassedAsLastGenericProps {
+          name: string;
+        };
+
+        export const ArrowFunctionComponentPassedAsLastGeneric: FunctionComponent<
+         Children<ArrowFunctionComponentPassedAsLastGenericProps>
+        > = ({ children, name }) => {
           console.log(name);
           return <></>;
         };
