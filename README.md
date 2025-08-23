@@ -13,18 +13,15 @@ npm install eslint-plugin-react-snob --save-dev
 
 ## Usage
 
+This plugin supports both ESLint legacy config (`.eslintrc.*`) and flat config (`eslint.config.js`) formats.
+
+### ESLint 8.x (Legacy Config)
+
 Add `react-snob` to the plugins section of your `.eslintrc` configuration file:
 
 ```json
 {
-  "plugins": ["react-snob"]
-}
-```
-
-Then configure the rules you want to use under the rules section:
-
-```json
-{
+  "plugins": ["react-snob"],
   "rules": {
     "react-snob/no-inline-styles": "error",
     "react-snob/require-jsx-string-braces": "error"
@@ -32,24 +29,55 @@ Then configure the rules you want to use under the rules section:
 }
 ```
 
-## Configurations
+#### Predefined Configurations
 
-This plugin provides some predefined configurations:
-
-### Recommended
-
+**Recommended:**
 ```json
 {
   "extends": ["plugin:react-snob/recommended"]
 }
 ```
 
-### Strict
-
+**Strict:**
 ```json
 {
   "extends": ["plugin:react-snob/strict"]
 }
+```
+
+### ESLint 9.x+ (Flat Config)
+
+For ESLint 9.x+ flat config format, use `eslint.config.js`:
+
+```js
+import reactSnob from 'eslint-plugin-react-snob/configs/flat';
+
+export default [
+  // Apply to JSX/TSX files
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    ...reactSnob.configs.recommended,
+  },
+];
+```
+
+Or configure rules manually:
+
+```js
+import reactSnob from 'eslint-plugin-react-snob/configs/flat';
+
+export default [
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    plugins: {
+      'react-snob': reactSnob.plugin,
+    },
+    rules: {
+      'react-snob/no-inline-styles': 'error',
+      'react-snob/require-jsx-string-braces': 'error',
+    },
+  },
+];
 ```
 
 ## Supported Rules

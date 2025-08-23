@@ -20,7 +20,7 @@ const plugin = {
   },
   meta: {
     name: 'eslint-plugin-react-snob',
-    version: '1.0.0',
+    version: '0.0.1',
   },
   rules: {
     'no-inline-styles': noInlineStyles,
