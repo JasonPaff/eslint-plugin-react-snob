@@ -43,8 +43,7 @@ export const requireJsxStringBraces = createRule({
     },
     fixable: 'code',
     messages: {
-      requireBraces:
-        "String literals in JSX attributes should be wrapped in curly braces: {{attribute}}={{'{'}}'{{value}}'{{'}'}}}",
+      requireBraces: 'String literals in JSX attributes should be wrapped in curly braces: {{attribute}}={"{{value}}"}',
     },
     schema: [],
     type: 'suggestion',
