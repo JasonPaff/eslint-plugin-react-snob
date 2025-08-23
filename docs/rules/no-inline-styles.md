@@ -8,7 +8,7 @@ This rule aims to prevent the use of inline styles in JSX elements, encouraging 
 
 Examples of **incorrect** code for this rule:
 
-```jsx
+```tsx
 // ❌ Inline styles
 <div style={{ color: 'red', fontSize: '16px' }}>Content</div>
 <span style={dynamicStyles}>Text</span>
@@ -17,7 +17,7 @@ Examples of **incorrect** code for this rule:
 
 Examples of **correct** code for this rule:
 
-```jsx
+```tsx
 // ✅ CSS classes
 <div className="red-text large-font">Content</div>
 <span className={dynamicClassName}>Text</span>

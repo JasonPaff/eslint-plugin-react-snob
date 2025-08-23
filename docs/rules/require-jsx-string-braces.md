@@ -10,7 +10,7 @@ For multi-line string literals, the rule automatically converts them to template
 
 Examples of **incorrect** code for this rule:
 
-```jsx
+```tsx
 // ❌ Direct string literals
 <div className="text-center">Content</div>
 <div aria-label="hello">Content</div>
@@ -28,7 +28,7 @@ Examples of **incorrect** code for this rule:
 
 Examples of **correct** code for this rule:
 
-```jsx
+```tsx
 // ✅ String literals wrapped in curly braces
 <div className={"text-center"}>Content</div>
 <div aria-label={'hello'}>Content</div>

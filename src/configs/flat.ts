@@ -1,3 +1,4 @@
+import { componentPropInterfaceNaming } from '../rules/component-prop-interface-naming';
 import { noInlineStyles } from '../rules/no-inline-styles';
 import { requireJsxStringBraces } from '../rules/require-jsx-string-braces';
 
@@ -8,6 +9,7 @@ const plugin = {
     version: '0.0.6',
   },
   rules: {
+    'component-prop-interface-naming': componentPropInterfaceNaming,
     'no-inline-styles': noInlineStyles,
     'require-jsx-string-braces': requireJsxStringBraces,
   },
@@ -19,6 +21,7 @@ export const recommended = {
     'react-snob': plugin,
   },
   rules: {
+    'react-snob/component-prop-interface-naming': 'warn',
     'react-snob/no-inline-styles': 'warn',
     'react-snob/require-jsx-string-braces': 'warn',
   },
@@ -29,6 +32,7 @@ export const strict = {
     'react-snob': plugin,
   },
   rules: {
+    'react-snob/component-prop-interface-naming': 'error',
     'react-snob/no-inline-styles': 'error',
     'react-snob/require-jsx-string-braces': 'error',
   },
