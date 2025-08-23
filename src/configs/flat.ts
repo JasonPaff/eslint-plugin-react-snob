@@ -36,9 +36,9 @@ export const strict = {
 
 // Default export for eslint.config.js usage
 export default {
-  plugin,
   configs: {
     recommended,
     strict,
   },
+  plugin,
 };
