@@ -1,8 +1,4 @@
-import { ESLintUtils } from '@typescript-eslint/utils';
-
-const createRule = ESLintUtils.RuleCreator(
-  (name) => `https://github.com/jasonpaff/eslint-plugin-react-snob/blob/main/docs/rules/${name}.md`
-);
+import { createRule } from '../utils';
 
 export const requireJsxStringBraces = createRule({
   create(context) {

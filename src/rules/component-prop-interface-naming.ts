@@ -1,54 +1,10 @@
-import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
-
-const createRule = ESLintUtils.RuleCreator(
-  (name) => `https://github.com/jasonpaff/eslint-plugin-react-snob/blob/main/docs/rules/${name}.md`
-);
+import { TSESTree } from '@typescript-eslint/utils';
+import { createRule, extractComponentName, isComponentFunction, findInterfaceNamesInTypeReference } from '../utils';
 
 export const componentPropInterfaceNaming = createRule({
   create(context) {
-    function extractComponentName(node: TSESTree.Node): string | null {
-      if (node.type === 'FunctionDeclaration' && node.id) {
-        return node.id.name;
-      }
 
-      if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier') {
-        return node.id.name;
-      }
 
-      return null;
-    }
-
-    function isComponentFunction(node: TSESTree.Node): boolean {
-      if (node.type === 'FunctionDeclaration' && node.id) {
-        return /^[A-Z]/.test(node.id.name);
-      }
-
-      if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier' && /^[A-Z]/.test(node.id.name)) {
-        return true;
-      }
-
-      return false;
-    }
-
-    function findInterfaceNamesInTypeReference(typeRef: TSESTree.TSTypeReference): string[] {
-      const interfaceNames: string[] = [];
-
-      // Check if the main type reference is an identifier
-      if (typeRef.typeName.type === 'Identifier') {
-        interfaceNames.push(typeRef.typeName.name);
-      }
-
-      // Recursively check type arguments
-      if (typeRef.typeArguments && typeRef.typeArguments.params.length > 0) {
-        for (const param of typeRef.typeArguments.params) {
-          if (param.type === 'TSTypeReference') {
-            interfaceNames.push(...findInterfaceNamesInTypeReference(param));
-          }
-        }
-      }
-
-      return interfaceNames;
-    }
 
     function checkComponentPropsInterface(
       componentNode: TSESTree.FunctionDeclaration | TSESTree.VariableDeclarator,

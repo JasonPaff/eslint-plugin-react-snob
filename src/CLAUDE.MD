@@ -9,9 +9,16 @@ src/
 ├── configs/           # Configuration presets for ESLint
 │   └── flat.ts       # ESLint 9+ flat config format
 ├── rules/            # Individual ESLint rule implementations
+│   ├── component-prop-interface-naming.ts
+│   ├── no-complex-jsx-conditions.ts
 │   ├── no-inline-styles.ts
-│   ├── require-jsx-string-braces.ts
-│   └── props-interface-naming.ts
+│   └── require-jsx-string-braces.ts
+├── utils/            # Shared utilities for rules
+│   ├── ast-traversal.ts      # AST traversal and expression analysis utilities
+│   ├── component-utils.ts    # React component detection and analysis
+│   ├── rule-creator.ts       # Standardized rule creator
+│   ├── typescript-utils.ts   # TypeScript-specific AST utilities
+│   └── index.ts             # Central export for all utilities
 └── index.ts          # Main plugin export (legacy format)
 ```
 
@@ -114,7 +121,7 @@ When adding a new rule, you must update **both** configuration files:
 
 ### Adding a New Rule
 
-1. **Create the rule**: Add implementation to `src/rules/new-rule.ts`
+1. **Create the rule**: Add implementation to `src/rules/new-rule.ts` (use shared utilities from `src/utils/`)
 2. **Add to legacy config**: Import and configure in `src/index.ts`
 3. **Add to flat config**: Import and configure in `src/configs/flat.ts`
 4. **Create tests**: Add test file to `tests/rules/new-rule.test.ts`
@@ -155,10 +162,35 @@ export default [
 ];
 ```
 
+## Shared Utilities
+
+The `src/utils/` directory contains reusable functions to avoid code duplication across rules:
+
+### Core Utilities
+
+- **`createRule`** (`src/utils/rule-creator.ts`): Standardized rule creator with consistent documentation URLs
+- **Component utilities** (`src/utils/component-utils.ts`): Functions for detecting and analyzing React components
+- **AST traversal** (`src/utils/ast-traversal.ts`): Functions for traversing and analyzing complex expressions
+- **TypeScript utilities** (`src/utils/typescript-utils.ts`): Utilities for working with TypeScript type annotations
+
+### Usage in Rules
+
+Rules should import utilities from `src/utils/` instead of implementing their own versions:
+
+```typescript
+// Good - use shared utilities
+import { createRule, extractComponentName, isComponentFunction } from '../utils';
+
+// Bad - duplicate functionality
+const createRule = ESLintUtils.RuleCreator(...);
+function extractComponentName(...) { /* duplicate code */ }
+```
+
 ## Important Notes
 
 - This plugin is React-focused and should only target JSX/TSX files for component-related rules and JS/TS files for hook-related rules
 - All rules should be defensive and only apply to actual React components and hooks
 - Maintain backward compatibility when possible
 - Follow TypeScript strict mode conventions
+- Use shared utilities from `src/utils/` to avoid code duplication
 - Use ESLint's TypeScript utilities from `@typescript-eslint/utils`

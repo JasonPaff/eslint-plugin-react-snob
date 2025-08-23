@@ -4,14 +4,11 @@ This document describes the consistent patterns and conventions for implementing
 
 ## Rule Structure Template
 
-Every rule should follow this standard structure:
+Every rule should follow this standard structure using shared utilities:
 
 ```typescript
-import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
-
-const createRule = ESLintUtils.RuleCreator(
-  (name) => `https://github.com/yourusername/eslint-plugin-react-snob/blob/main/docs/rules/${name}.md`
-);
+import { TSESTree } from '@typescript-eslint/utils';
+import { createRule, extractComponentName, isComponentFunction } from '../utils';
 
 export const ruleName = createRule({
   create(context) {
@@ -37,20 +34,38 @@ export const ruleName = createRule({
 
 ## Required Imports
 
-### Standard Imports
+### Shared Utilities (Always Required)
 
 ```typescript
-import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
+import { createRule } from '../utils';
 ```
 
-- **ESLintUtils**: Provides `RuleCreator` for creating type-safe rules
+- **`createRule`**: Standardized rule creator with consistent documentation URLs
+
+### TypeScript ESTree Types (When Needed)
+
+```typescript
+import { TSESTree, AST_NODE_TYPES } from '@typescript-eslint/utils';
+```
+
 - **TSESTree**: TypeScript ESTree node types for AST manipulation
+- **AST_NODE_TYPES**: Enumeration of all AST node types
 
-### Additional Utilities (when needed)
+### Component and Analysis Utilities (When Needed)
 
 ```typescript
-import { AST_NODE_TYPES } from '@typescript-eslint/utils';
+import { 
+  extractComponentName, 
+  isComponentFunction,
+  countLogicalOperators,
+  hasTemplateLiteral,
+  findInterfaceNamesInTypeReference
+} from '../utils';
 ```
+
+- **Component utilities**: Functions for detecting and analyzing React components
+- **AST traversal utilities**: Functions for analyzing complex expressions
+- **TypeScript utilities**: Functions for working with type annotations
 
 ## Rule Metadata Structure
 
@@ -210,37 +225,51 @@ context.report({
 });
 ```
 
-## Utility Function Patterns
+## Using Shared Utilities
 
-### Component Name Extraction
+Instead of implementing your own utility functions, use the shared utilities from `src/utils/`:
+
+### Component Analysis
 
 ```typescript
-function extractComponentName(node: TSESTree.Node): string | null {
-  if (node.type === 'FunctionDeclaration' && node.id) {
-    return node.id.name;
-  }
+import { extractComponentName, isComponentFunction } from '../utils';
 
-  if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier') {
-    return node.id.name;
+// In your rule's create function
+FunctionDeclaration(node) {
+  if (!isComponentFunction(node)) return;
+  
+  const componentName = extractComponentName(node);
+  if (componentName) {
+    // Process component...
   }
-
-  return null;
 }
 ```
 
-### React Component Detection
+### AST Expression Analysis
 
 ```typescript
-function isComponentFunction(node: TSESTree.Node): boolean {
-  if (node.type === 'FunctionDeclaration' && node.id) {
-    return /^[A-Z]/.test(node.id.name);
-  }
+import { countLogicalOperators, hasTemplateLiteral } from '../utils';
 
-  if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier' && /^[A-Z]/.test(node.id.name)) {
-    return true;
+// In your rule's create function
+JSXExpressionContainer(node) {
+  const logicalCount = countLogicalOperators(node.expression);
+  const hasTemplate = hasTemplateLiteral(node.expression);
+  
+  if (logicalCount > 2 || hasTemplate) {
+    // Report complex condition...
   }
+}
+```
 
-  return false;
+### TypeScript Type Analysis
+
+```typescript
+import { findInterfaceNamesInTypeReference } from '../utils';
+
+// In your rule's create function
+if (typeRef.type === 'TSTypeReference') {
+  const interfaceNames = findInterfaceNamesInTypeReference(typeRef);
+  // Process interface names...
 }
 ```
 
