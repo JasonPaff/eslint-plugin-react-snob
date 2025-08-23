@@ -384,6 +384,73 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         },
       ],
     },
+
+    // Type alias with generic parameters and incorrect naming
+    {
+      code: `
+        type ButtonConfig<T> = {
+          onClick: () => void;
+          data: T;
+        }
+        function Button<T>({ onClick, data }: ButtonConfig<T>) {
+          return <button onClick={onClick}>Click me</button>;
+        }
+      `,
+      errors: [
+        {
+          data: {
+            actual: 'ButtonConfig',
+            component: 'Button',
+            expected: 'ButtonProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
+
+    // Component with Props suffix but completely unrelated name
+    {
+      code: `
+        interface RandomProps {
+          value: string;
+        }
+        function SpecificButton({ value }: RandomProps) {
+          return <button>{value}</button>;
+        }
+      `,
+      errors: [
+        {
+          data: {
+            actual: 'RandomProps',
+            component: 'SpecificButton',
+            expected: 'SpecificButtonProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
+
+    // Nested forwardRef with memo and incorrect naming
+    {
+      code: `
+        interface InputSettings {
+          placeholder: string;
+        }
+        const Input = memo(forwardRef<HTMLInputElement, InputSettings>(
+          ({ placeholder }, ref) => <input ref={ref} placeholder={placeholder} />
+        ));
+      `,
+      errors: [
+        {
+          data: {
+            actual: 'InputSettings',
+            component: 'Input',
+            expected: 'InputProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
   ],
 
   valid: [
@@ -660,6 +727,67 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
             <p>{description}</p>
           </div>
         );
+      `,
+    },
+
+    // Component with Props suffix that matches exactly (edge case)
+    {
+      code: `
+        interface PropsProps {
+          value: string;
+        }
+        function Props({ value }: PropsProps) {
+          return <div>{value}</div>;
+        }
+      `,
+    },
+
+    // Component ending in "Component" using the base name pattern
+    {
+      code: `
+        interface UserProps {
+          id: number;
+        }
+        function UserComponent({ id }: UserProps) {
+          return <div>User {id}</div>;
+        }
+      `,
+    },
+
+    // Generic type alias with correct naming
+    {
+      code: `
+        type ListProps<T> = {
+          items: T[];
+          onSelect: (item: T) => void;
+        }
+        function List<T>({ items, onSelect }: ListProps<T>) {
+          return <ul>{items.map(item => <li onClick={() => onSelect(item)}>{String(item)}</li>)}</ul>;
+        }
+      `,
+    },
+
+    // Complex component name with numbers
+    {
+      code: `
+        interface Button2Props {
+          label: string;
+        }
+        function Button2({ label }: Button2Props) {
+          return <button>{label}</button>;
+        }
+      `,
+    },
+
+    // Nested forwardRef with memo and correct naming
+    {
+      code: `
+        interface InputProps {
+          placeholder: string;
+        }
+        const Input = memo(forwardRef<HTMLInputElement, InputProps>(
+          ({ placeholder }, ref) => <input ref={ref} placeholder={placeholder} />
+        ));
       `,
     },
   ],
