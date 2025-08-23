@@ -198,6 +198,56 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         },
       ],
     },
+
+    // Arrow function component with generic type declaration as function type generic
+    {
+      code: `
+        type ArrowFunctionComponentPassedAsFirstGenericOptions<T> = T & {
+          name: string;
+        };
+
+        export const ArrowFunctionComponentPassedAsFirstGeneric: FunctionComponent<
+         ArrowFunctionComponentPassedAsFirstGenericOptions<Children>
+        > = ({ children, name }) => {
+          console.log(name);
+          return <></>;
+        };
+      `,
+      errors: [
+        {
+          data: {
+            actual: 'ArrowFunctionComponentPassedAsFirstGenericOptions',
+            component: 'ArrowFunctionComponentPassedAsFirstGeneric',
+            expected: 'ArrowFunctionComponentPassedAsFirstGenericProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
+
+    // Arrow function component with generic type declaration as parameter type
+    {
+      code: `
+        type ArrowFunctionComponentPassedAsFirstGenericOptions<T> = T & {
+          name: string;
+        };
+
+        export const ArrowFunctionComponentPassedAsFirstGeneric = ({ children, name }: ArrowFunctionComponentPassedAsFirstGenericOptions<Children>) => {
+          console.log(name);
+          return <></>;
+        };
+      `,
+      errors: [
+        {
+          data: {
+            actual: 'ArrowFunctionComponentPassedAsFirstGenericOptions',
+            component: 'ArrowFunctionComponentPassedAsFirstGeneric',
+            expected: 'ArrowFunctionComponentPassedAsFirstGenericProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
   ],
 
   valid: [
@@ -311,6 +361,36 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         const MemoComponent = memo(({ value }: MemoComponentProps) => {
           return <div>{value}</div>;
         });
+      `,
+    },
+
+    // Arrow function component with generic type declaration as function type generic (correct naming)
+    {
+      code: `
+        type ArrowFunctionComponentPassedAsFirstGenericProps<T> = T & {
+          name: string;
+        };
+
+        export const ArrowFunctionComponentPassedAsFirstGeneric: FunctionComponent<
+         ArrowFunctionComponentPassedAsFirstGenericProps<Children>
+        > = ({ children, name }) => {
+          console.log(name);
+          return <></>;
+        };
+      `,
+    },
+
+    // Arrow function component with generic type declaration as parameter type (correct naming)
+    {
+      code: `
+        type ArrowFunctionComponentPassedAsFirstGenericProps<T> = T & {
+          name: string;
+        };
+
+        export const ArrowFunctionComponentPassedAsFirstGeneric = ({ children, name }: ArrowFunctionComponentPassedAsFirstGenericProps<Children>) => {
+          console.log(name);
+          return <></>;
+        };
       `,
     },
   ],
