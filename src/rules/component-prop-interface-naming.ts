@@ -1,6 +1,6 @@
 import { TSESTree } from '@typescript-eslint/utils';
 
-import { createRule, extractComponentName, isComponentFunction, findInterfaceNamesInTypeReference } from '../utils';
+import { createRule, extractComponentName, isComponentFunction, findInterfaceNamesInTypeReference, getQualifiedTypeName, getFullTypeSignature } from '../utils';
 
 export const componentPropInterfaceNaming = createRule({
   create(context) {
@@ -26,8 +26,13 @@ export const componentPropInterfaceNaming = createRule({
         const firstParam = componentNode.params[0];
         if (firstParam && firstParam.type === 'ObjectPattern' && firstParam.typeAnnotation) {
           const typeAnnotation = firstParam.typeAnnotation.typeAnnotation;
-          if (typeAnnotation.type === 'TSTypeReference' && typeAnnotation.typeName.type === 'Identifier') {
-            actualInterfaceName = typeAnnotation.typeName.name;
+          if (typeAnnotation.type === 'TSTypeReference') {
+            if (typeAnnotation.typeName.type === 'Identifier') {
+              actualInterfaceName = typeAnnotation.typeName.name;
+            } else if (typeAnnotation.typeName.type === 'TSQualifiedName') {
+              // Handle React.ComponentProps<'div'>, etc. - use full signature
+              actualInterfaceName = getFullTypeSignature(typeAnnotation);
+            }
           }
         }
       }
@@ -67,8 +72,13 @@ export const componentPropInterfaceNaming = createRule({
           const firstParam = functionNode.params[0];
           if (firstParam.type === 'ObjectPattern' && firstParam.typeAnnotation) {
             const typeAnnotation = firstParam.typeAnnotation.typeAnnotation;
-            if (typeAnnotation.type === 'TSTypeReference' && typeAnnotation.typeName.type === 'Identifier') {
-              actualInterfaceName = typeAnnotation.typeName.name;
+            if (typeAnnotation.type === 'TSTypeReference') {
+              if (typeAnnotation.typeName.type === 'Identifier') {
+                actualInterfaceName = typeAnnotation.typeName.name;
+              } else if (typeAnnotation.typeName.type === 'TSQualifiedName') {
+                // Handle React.ComponentProps<'div'>, etc. - use full signature
+                actualInterfaceName = getFullTypeSignature(typeAnnotation);
+              }
             }
           }
         }
@@ -86,8 +96,13 @@ export const componentPropInterfaceNaming = createRule({
               callExpression.typeArguments.params.length >= 2
             ) {
               const propsTypeParam = callExpression.typeArguments.params[1];
-              if (propsTypeParam.type === 'TSTypeReference' && propsTypeParam.typeName.type === 'Identifier') {
-                actualInterfaceName = propsTypeParam.typeName.name;
+              if (propsTypeParam.type === 'TSTypeReference') {
+                if (propsTypeParam.typeName.type === 'Identifier') {
+                  actualInterfaceName = propsTypeParam.typeName.name;
+                } else if (propsTypeParam.typeName.type === 'TSQualifiedName') {
+                  // Handle React.ComponentProps<'div'>, etc. - use full signature
+                  actualInterfaceName = getFullTypeSignature(propsTypeParam);
+                }
               }
               break;
             }
@@ -130,8 +145,13 @@ export const componentPropInterfaceNaming = createRule({
               }
 
               // If no props-like interface found, use the first one (for direct references)
-              if (!actualInterfaceName && firstTypeParam.typeName.type === 'Identifier') {
-                actualInterfaceName = firstTypeParam.typeName.name;
+              if (!actualInterfaceName) {
+                if (firstTypeParam.typeName.type === 'Identifier') {
+                  actualInterfaceName = firstTypeParam.typeName.name;
+                } else if (firstTypeParam.typeName.type === 'TSQualifiedName') {
+                  // Handle React.ComponentProps<'div'>, etc. - use full signature
+                  actualInterfaceName = getFullTypeSignature(firstTypeParam);
+                }
               }
             }
           }

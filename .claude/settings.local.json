@@ -8,9 +8,13 @@
       "Bash(npm run format)",
       "Bash(npm test:*)",
       "Bash(npx eslint:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Read(/C:\\c\\Users\\JasonPaff\\dev/**)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\c\\Users\\JasonPaff\\dev"
+    ]
   }
 }

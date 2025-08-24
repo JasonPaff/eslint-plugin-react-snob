@@ -8,4 +8,4 @@ export { extractComponentName, isComponentFunction } from './component-utils';
 export { countLogicalOperators, hasTemplateLiteral, hasLogicalAssignment, isComplexOperand } from './ast-traversal';
 
 // TypeScript-specific utilities
-export { findInterfaceNamesInTypeReference } from './typescript-utils';
+export { findInterfaceNamesInTypeReference, getQualifiedTypeName, getFullTypeSignature } from './typescript-utils';
