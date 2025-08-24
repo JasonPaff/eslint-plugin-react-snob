@@ -20,6 +20,63 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
     // Function component with incorrectly named props interface
     {
       code: `
+       function Card({ className, ...props }: React.ComponentProps<'div'>) {
+           return (<div>...</div>);
+       }
+      `,
+      errors: [
+        {
+          data: {
+            actual: "React.ComponentProps<'div'>",
+            component: 'Card',
+            expected: 'CardProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
+
+    // Arrow component with incorrectly named props interface
+    {
+      code: `
+       const Card = ({ className, ...props }: React.ComponentProps<'div'>) => {
+           return (<div>...</div>);
+       }
+      `,
+      errors: [
+        {
+          data: {
+            actual: "React.ComponentProps<'div'>",
+            component: 'Card',
+            expected: 'CardProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
+
+    // Arrow Function component with incorrectly named props interface
+    {
+      code: `
+       const Card = function ({ className, ...props }: React.ComponentProps<'div'>) {
+           return (<div>...</div>);
+       }
+      `,
+      errors: [
+        {
+          data: {
+            actual: "React.ComponentProps<'div'>",
+            component: 'Card',
+            expected: 'CardProps',
+          },
+          messageId: 'incorrectPropsInterfaceName',
+        },
+      ],
+    },
+
+    // Function component with incorrectly named props interface
+    {
+      code: `
         interface ButtonOptions {
           onClick: () => void;
         }
