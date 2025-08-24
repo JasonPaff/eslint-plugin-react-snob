@@ -627,6 +627,22 @@ ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, {
       code: 'var isLoading = true;',
     },
 
+    // boolean variables passed into functions with capital first letters but prefixed with `new` (should be ignored)
+    {
+      code: 'const client = new Realtime({ disabled: true });',
+    },
+
+    // Variables with a correct underscored "is" prefix
+    {
+      code: 'const _isVisible = true;',
+    },
+    {
+      code: 'let _isDisabled = false;',
+    },
+    {
+      code: 'var _isLoading = true;',
+    },
+
     // React useState with correct naming
     {
       code: 'const [isOpen, setIsOpen] = useState(false);',

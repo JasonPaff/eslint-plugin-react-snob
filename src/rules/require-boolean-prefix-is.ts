@@ -6,11 +6,18 @@ import { createRule } from '../utils';
  * Converts a variable name to its suggested "is" prefixed version
  */
 function suggestIsPrefix(name: string): string {
-  if (name.startsWith('is') || name.startsWith('IS_')) return name;
+  if (name.startsWith('is') || name.startsWith('IS_') || name.startsWith('_is')) return name;
 
   // If the name is all uppercase (constants), suggest IS_ prefix
   if (/^[A-Z_0-9]+$/.test(name)) {
     return `IS_${name}`;
+  }
+
+  // Handle underscore prefix case
+  if (name.startsWith('_')) {
+    const nameWithoutUnderscore = name.slice(1);
+    const capitalized = nameWithoutUnderscore.charAt(0).toUpperCase() + nameWithoutUnderscore.slice(1);
+    return `_is${capitalized}`;
   }
 
   // Handle common patterns and capitalize appropriately
@@ -19,10 +26,10 @@ function suggestIsPrefix(name: string): string {
 }
 
 /**
- * Checks if a name already starts with "is" or "IS_"
+ * Checks if a name already starts with "is" or "IS_" (including underscore prefix)
  */
 function hasIsPrefix(name: string): boolean {
-  return /^is[A-Z]/.test(name) || /^IS_/.test(name);
+  return /^is[A-Z]/.test(name) || /^IS_/.test(name) || /^_is[A-Z]/.test(name);
 }
 
 /**
@@ -93,6 +100,24 @@ function isInZodOmitOrPickMethod(node: TSESTree.Node): boolean {
           (callee.property.name === 'omit' || callee.property.name === 'pick')) {
         return true;
       }
+    }
+    
+    current = current.parent || null;
+  }
+
+  return false;
+}
+
+/**
+ * Checks if a property is inside a constructor call (new Something(...))
+ */
+function isInConstructorCall(node: TSESTree.Node): boolean {
+  let current: TSESTree.Node | null = node;
+
+  // Walk up the AST to find a NewExpression
+  while (current) {
+    if (current.type === 'NewExpression') {
+      return true;
     }
     
     current = current.parent || null;
@@ -312,6 +337,11 @@ export const requireBooleanPrefixIs = createRule({
 
         // Skip if this property is inside a Zod .omit() or .pick() method
         if (isInZodOmitOrPickMethod(node)) {
+          return;
+        }
+
+        // Skip if this property is inside a constructor call (new Something(...))
+        if (isInConstructorCall(node)) {
           return;
         }
 
