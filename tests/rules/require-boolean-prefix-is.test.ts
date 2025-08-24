@@ -459,6 +459,76 @@ ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, {
         },
       ],
     },
+
+    // Constants without proper IS_ prefix (should be invalid)
+    {
+      code: `
+        const SETTINGS = {
+          ENABLED: true,
+          VISIBLE: false,
+          DEBUG_MODE: true,
+        };
+      `,
+      errors: [
+        {
+          data: {
+            name: 'ENABLED',
+            suggested: 'IS_ENABLED',
+          },
+          messageId: 'booleanShouldStartWithIs',
+        },
+        {
+          data: {
+            name: 'VISIBLE',
+            suggested: 'IS_VISIBLE',
+          },
+          messageId: 'booleanShouldStartWithIs',
+        },
+        {
+          data: {
+            name: 'DEBUG_MODE',
+            suggested: 'IS_DEBUG_MODE',
+          },
+          messageId: 'booleanShouldStartWithIs',
+        },
+      ],
+    },
+
+    // Mixed case constants without IS_ prefix
+    {
+      code: `
+        export const APP_CONFIG = {
+          API_ENDPOINT: 'https://api.example.com',
+          FEATURE_ENABLED: true,
+          DEBUG: false,
+          VERSION: '1.0.0',
+          PRODUCTION_MODE: false,
+        } as const;
+      `,
+      errors: [
+        {
+          data: {
+            name: 'FEATURE_ENABLED',
+            suggested: 'IS_FEATURE_ENABLED',
+          },
+          messageId: 'booleanShouldStartWithIs',
+        },
+        {
+          data: {
+            name: 'DEBUG',
+            suggested: 'IS_DEBUG',
+          },
+          messageId: 'booleanShouldStartWithIs',
+        },
+        {
+          data: {
+            name: 'PRODUCTION_MODE',
+            suggested: 'IS_PRODUCTION_MODE',
+          },
+          messageId: 'booleanShouldStartWithIs',
+        },
+      ],
+    },
   ],
 
   valid: [
@@ -673,6 +743,47 @@ ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, {
             isVisible: true
           };
         }
+      `,
+    },
+
+    // Constants with IS_ prefix (should be valid)
+    {
+      code: `
+        export const BOBBLEHEAD_DEFAULTS = {
+          COMMENT_COUNT: 0,
+          CURRENT_CONDITION: 'excellent',
+          IS_DELETED: false,
+          IS_FEATURED: false,
+          IS_PUBLIC: true,
+          LIKE_COUNT: 0,
+          SORT_ORDER: 0,
+          STATUS: 'owned',
+          VIEW_COUNT: 0,
+        } as const;
+      `,
+    },
+
+    // Object with mixed IS_ constants and non-boolean constants
+    {
+      code: `
+        const CONFIG = {
+          API_URL: 'https://example.com',
+          IS_DEVELOPMENT: false,
+          IS_ENABLED: true,
+          MAX_RETRIES: 3,
+          IS_DEBUG_MODE: false,
+        };
+      `,
+    },
+
+    // Constants object with proper IS_ naming
+    {
+      code: `
+        const FLAGS = {
+          IS_FEATURE_A_ENABLED: true,
+          IS_FEATURE_B_ENABLED: false,
+          IS_BETA_USER: true,
+        };
       `,
     },
   ],

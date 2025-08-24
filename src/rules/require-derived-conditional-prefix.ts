@@ -135,7 +135,11 @@ function containsJSX(node: TSESTree.Node, visited: Set<TSESTree.Node> = new Set(
     const value = (node as unknown as Record<string, unknown>)[key];
     if (value && typeof value === 'object') {
       if (Array.isArray(value)) {
-        if (value.some((item) => item && typeof item === 'object' && 'type' in item && containsJSX(item as TSESTree.Node, visited))) {
+        if (
+          value.some(
+            (item) => item && typeof item === 'object' && 'type' in item && containsJSX(item as TSESTree.Node, visited)
+          )
+        ) {
           return true;
         }
       } else if ('type' in value && containsJSX(value as TSESTree.Node, visited)) {

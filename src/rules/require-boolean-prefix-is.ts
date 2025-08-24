@@ -6,7 +6,12 @@ import { createRule } from '../utils';
  * Converts a variable name to its suggested "is" prefixed version
  */
 function suggestIsPrefix(name: string): string {
-  if (name.startsWith('is')) return name;
+  if (name.startsWith('is') || name.startsWith('IS_')) return name;
+
+  // If the name is all uppercase (constants), suggest IS_ prefix
+  if (/^[A-Z_0-9]+$/.test(name)) {
+    return `IS_${name}`;
+  }
 
   // Handle common patterns and capitalize appropriately
   const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
@@ -14,10 +19,10 @@ function suggestIsPrefix(name: string): string {
 }
 
 /**
- * Checks if a name already starts with "is"
+ * Checks if a name already starts with "is" or "IS_"
  */
 function hasIsPrefix(name: string): boolean {
-  return /^is[A-Z]/.test(name);
+  return /^is[A-Z]/.test(name) || /^IS_/.test(name);
 }
 
 /**
@@ -83,7 +88,7 @@ function isUseStateWithBoolean(node: TSESTree.CallExpression): boolean {
 
   const firstArg = node.arguments[0];
   if (firstArg.type === 'SpreadElement') return false;
-  
+
   return isBooleanLiteral(firstArg) || isBooleanExpression(firstArg);
 }
 
@@ -140,7 +145,12 @@ export const requireBooleanPrefixIs = createRule({
                     member.key.name === propName
                 );
 
-                if (typeMember && 'typeAnnotation' in typeMember && typeMember.typeAnnotation && isBooleanType(typeMember.typeAnnotation)) {
+                if (
+                  typeMember &&
+                  'typeAnnotation' in typeMember &&
+                  typeMember.typeAnnotation &&
+                  isBooleanType(typeMember.typeAnnotation)
+                ) {
                   reportBooleanNaming(prop.value, prop.value.name);
                 }
               }
@@ -215,7 +225,12 @@ export const requireBooleanPrefixIs = createRule({
                     member.key.name === propName
                 );
 
-                if (typeMember && 'typeAnnotation' in typeMember && typeMember.typeAnnotation && isBooleanType(typeMember.typeAnnotation)) {
+                if (
+                  typeMember &&
+                  'typeAnnotation' in typeMember &&
+                  typeMember.typeAnnotation &&
+                  isBooleanType(typeMember.typeAnnotation)
+                ) {
                   reportBooleanNaming(prop.value, prop.value.name);
                 }
               }
@@ -245,7 +260,12 @@ export const requireBooleanPrefixIs = createRule({
                     member.key.name === propName
                 );
 
-                if (typeMember && 'typeAnnotation' in typeMember && typeMember.typeAnnotation && isBooleanType(typeMember.typeAnnotation)) {
+                if (
+                  typeMember &&
+                  'typeAnnotation' in typeMember &&
+                  typeMember.typeAnnotation &&
+                  isBooleanType(typeMember.typeAnnotation)
+                ) {
                   reportBooleanNaming(prop.value, prop.value.name);
                 }
               }
@@ -270,10 +290,10 @@ export const requireBooleanPrefixIs = createRule({
           node.value &&
           node.value.type !== 'AssignmentPattern' &&
           'type' in node.value &&
-          (isBooleanLiteral(node.value as TSESTree.Expression) || 
-           (node.value.type !== 'Identifier' && 
-            node.value.type !== 'TSEmptyBodyFunctionExpression' &&
-            isBooleanExpression(node.value as TSESTree.Expression)))
+          (isBooleanLiteral(node.value as TSESTree.Expression) ||
+            (node.value.type !== 'Identifier' &&
+              node.value.type !== 'TSEmptyBodyFunctionExpression' &&
+              isBooleanExpression(node.value as TSESTree.Expression)))
         ) {
           reportBooleanNaming(node, name);
         }
@@ -365,7 +385,12 @@ export const requireBooleanPrefixIs = createRule({
                     member.key.name === propName
                 );
 
-                if (typeMember && 'typeAnnotation' in typeMember && typeMember.typeAnnotation && isBooleanType(typeMember.typeAnnotation)) {
+                if (
+                  typeMember &&
+                  'typeAnnotation' in typeMember &&
+                  typeMember.typeAnnotation &&
+                  isBooleanType(typeMember.typeAnnotation)
+                ) {
                   reportBooleanNaming(prop.value, prop.value.name);
                 }
               }

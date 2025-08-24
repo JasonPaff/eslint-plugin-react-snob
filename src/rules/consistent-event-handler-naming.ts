@@ -125,7 +125,9 @@ export const consistentEventHandlerNaming = createRule({
       return /^(e|event|evt)$/.test(param.name);
     }
 
-    function hasEventHandlerParameters(node: TSESTree.FunctionDeclaration | TSESTree.FunctionExpression | TSESTree.ArrowFunctionExpression): boolean {
+    function hasEventHandlerParameters(
+      node: TSESTree.FunctionDeclaration | TSESTree.FunctionExpression | TSESTree.ArrowFunctionExpression
+    ): boolean {
       return node.params.length > 0 && isEventHandlerParameter(node.params[0]);
     }
 

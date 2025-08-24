@@ -1,10 +1,15 @@
 # require-boolean-prefix-is
 
-Enforce boolean variables, state, and props to start with "is" prefix.
+Enforce boolean variables, state, and props to start with "is" prefix (or "IS\_" for constants).
 
 ## Rule Details
 
-This rule enforces that all boolean variables, state variables, and props must start with the prefix `is`. This naming convention improves code readability and makes boolean values immediately identifiable. By requiring consistent naming for boolean identifiers, the rule helps developers quickly understand the purpose and type of variables, leading to more maintainable and self-documenting code.
+This rule enforces that all boolean variables, state variables, and props must start with the prefix `is` (or `IS_` for uppercase constants). This naming convention improves code readability and makes boolean values immediately identifiable. By requiring consistent naming for boolean identifiers, the rule helps developers quickly understand the purpose and type of variables, leading to more maintainable and self-documenting code.
+
+The rule recognizes two valid prefixes:
+
+- `is` followed by a capital letter for regular variables (e.g., `isVisible`, `isEnabled`)
+- `IS_` for uppercase constant naming (e.g., `IS_DELETED`, `IS_FEATURED`)
 
 The rule applies to:
 
@@ -90,6 +95,23 @@ interface InputProps {
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ disabled, readOnly }, ref) => <input ref={ref} disabled={disabled} readOnly={readOnly} />
 );
+```
+
+```jsx
+// ❌ Constants without "IS_" prefix
+const SETTINGS = {
+  ENABLED: true,
+  VISIBLE: false,
+  DEBUG_MODE: true,
+};
+
+export const APP_CONFIG = {
+  API_ENDPOINT: 'https://api.example.com',
+  FEATURE_ENABLED: true,
+  DEBUG: false,
+  VERSION: '1.0.0',
+  PRODUCTION_MODE: false,
+} as const;
 ```
 
 Examples of **correct** code for this rule:
@@ -207,6 +229,35 @@ const name = useState('');
 function utilityFunction(enabled: boolean, disabled: boolean) {
   return enabled && !disabled;
 }
+```
+
+```jsx
+// ✅ Constants with "IS_" prefix
+export const BOBBLEHEAD_DEFAULTS = {
+  COMMENT_COUNT: 0,
+  CURRENT_CONDITION: 'excellent',
+  IS_DELETED: false,
+  IS_FEATURED: false,
+  IS_PUBLIC: true,
+  LIKE_COUNT: 0,
+  SORT_ORDER: 0,
+  STATUS: 'owned',
+  VIEW_COUNT: 0,
+} as const;
+
+const CONFIG = {
+  API_URL: 'https://example.com',
+  IS_DEVELOPMENT: false,
+  IS_ENABLED: true,
+  MAX_RETRIES: 3,
+  IS_DEBUG_MODE: false,
+};
+
+const FLAGS = {
+  IS_FEATURE_A_ENABLED: true,
+  IS_FEATURE_B_ENABLED: false,
+  IS_BETA_USER: true,
+};
 ```
 
 ```jsx
