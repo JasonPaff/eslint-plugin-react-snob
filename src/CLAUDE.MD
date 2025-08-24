@@ -194,3 +194,4 @@ function extractComponentName(...) { /* duplicate code */ }
 - Follow TypeScript strict mode conventions
 - Use shared utilities from `src/utils/` to avoid code duplication
 - Use ESLint's TypeScript utilities from `@typescript-eslint/utils`
+- Always run `npm run lint:fix` and `npm run format` before committing code, make sure all checks pass
