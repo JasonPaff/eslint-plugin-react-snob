@@ -2,34 +2,61 @@ import { TSESTree } from '@typescript-eslint/utils';
 
 import { createRule } from '../utils';
 
-/**
- * Converts a variable name to its suggested "is" prefixed version
- */
-function suggestIsPrefix(name: string): string {
-  if (name.startsWith('is') || name.startsWith('IS_') || name.startsWith('_is')) return name;
 
-  // If the name is all uppercase (constants), suggest IS_ prefix
+/**
+ * Converts a variable name to its suggested prefixed version based on allowed prefixes
+ */
+function suggestPrefixedName(name: string, allowedPrefixes: string[]): string {
+  // Check if name already starts with any allowed prefix
+  for (const prefix of allowedPrefixes) {
+    if (hasValidPrefix(name, prefix)) return name;
+  }
+
+  // Use the first allowed prefix as the suggested prefix
+  const prefix = allowedPrefixes[0];
+  
+  // If the name is all uppercase (constants), suggest UPPER_CASE prefix
   if (/^[A-Z_0-9]+$/.test(name)) {
-    return `IS_${name}`;
+    return `${prefix.toUpperCase()}_${name}`;
   }
 
   // Handle underscore prefix case
   if (name.startsWith('_')) {
     const nameWithoutUnderscore = name.slice(1);
     const capitalized = nameWithoutUnderscore.charAt(0).toUpperCase() + nameWithoutUnderscore.slice(1);
-    return `_is${capitalized}`;
+    return `_${prefix}${capitalized}`;
   }
 
   // Handle common patterns and capitalize appropriately
   const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
-  return `is${capitalized}`;
+  return `${prefix}${capitalized}`;
+}
+
+
+/**
+ * Checks if a name already starts with a valid prefix (including underscore prefix)
+ */
+function hasValidPrefix(name: string, prefix: string): boolean {
+  const lowerPrefix = prefix.toLowerCase();
+  const upperPrefix = prefix.toUpperCase();
+  
+  // Check for camelCase prefix (e.g., "is", "has", "should")
+  const camelCaseRegex = new RegExp(`^${lowerPrefix}[A-Z]`);
+  
+  // Check for UPPER_CASE prefix (e.g., "IS_", "HAS_", "SHOULD_")
+  const upperCaseRegex = new RegExp(`^${upperPrefix}_`);
+  
+  // Check for underscore prefix case (e.g., "_is", "_has", "_should")
+  const underscoreRegex = new RegExp(`^_${lowerPrefix}[A-Z]`);
+  
+  return camelCaseRegex.test(name) || upperCaseRegex.test(name) || underscoreRegex.test(name);
 }
 
 /**
- * Checks if a name already starts with "is" or "IS_" (including underscore prefix)
+ * Checks if a name starts with any of the allowed prefixes
  */
-function hasIsPrefix(name: string): boolean {
-  return /^is[A-Z]/.test(name) || /^IS_/.test(name) || /^_is[A-Z]/.test(name);
+function hasAnyValidPrefix(name: string, allowedPrefixes: string[]): boolean {
+  return allowedPrefixes.some(prefix => hasValidPrefix(name, prefix));
 }
 
 /**
@@ -142,20 +169,34 @@ function isUseStateWithBoolean(node: TSESTree.CallExpression): boolean {
   return isBooleanLiteral(firstArg) || isBooleanExpression(firstArg);
 }
 
-export const requireBooleanPrefixIs = createRule({
-  create(context) {
+type Options = [
+  {
+    allowedPrefixes?: string[];
+  }
+];
+
+export const requireBooleanPrefixIs = createRule<Options, 'booleanShouldStartWithPrefix'>({
+  create(context, [options = {}]) {
+    const { allowedPrefixes = ['is'] } = options;
+    
     /**
-     * Reports an error for a boolean identifier that doesn't start with "is"
+     * Reports an error for a boolean identifier that doesn't start with an allowed prefix
      */
     function reportBooleanNaming(node: TSESTree.Node, name: string): void {
-      if (hasIsPrefix(name)) return;
+      if (hasAnyValidPrefix(name, allowedPrefixes)) return;
+
+      const suggested = suggestPrefixedName(name, allowedPrefixes);
+      const prefixList = allowedPrefixes.length === 1 
+        ? `"${allowedPrefixes[0]}"`
+        : allowedPrefixes.slice(0, -1).map(p => `"${p}"`).join(', ') + `, or "${allowedPrefixes[allowedPrefixes.length - 1]}"`;
 
       context.report({
         data: {
           name,
-          suggested: suggestIsPrefix(name),
+          prefixes: prefixList,
+          suggested,
         },
-        messageId: 'booleanShouldStartWithIs',
+        messageId: 'booleanShouldStartWithPrefix',
         node,
       });
     }
@@ -464,17 +505,33 @@ export const requireBooleanPrefixIs = createRule({
       },
     };
   },
-  defaultOptions: [],
+  defaultOptions: [{}],
   meta: {
     docs: {
-      description: 'Enforce boolean variables, state, and props to start with "is" prefix',
+      description: 'Enforce boolean variables, state, and props to start with allowed prefix',
     },
     fixable: undefined,
     messages: {
-      booleanShouldStartWithIs:
-        'Boolean identifier "{{name}}" should start with "is" prefix. Consider using "{{suggested}}" instead.',
+      booleanShouldStartWithPrefix:
+        'Boolean identifier "{{name}}" should start with {{prefixes}} prefix. Consider using "{{suggested}}" instead.',
     },
-    schema: [],
+    schema: [
+      {
+        additionalProperties: false,
+        properties: {
+          allowedPrefixes: {
+            items: {
+              minLength: 1,
+              type: 'string',
+            },
+            minItems: 1,
+            type: 'array',
+            uniqueItems: true,
+          },
+        },
+        type: 'object',
+      },
+    ],
     type: 'suggestion',
   },
   name: 'require-boolean-prefix-is',

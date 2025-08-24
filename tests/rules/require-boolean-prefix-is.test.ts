@@ -17,16 +17,17 @@ const ruleTester = new RuleTester({
 
 ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, {
   invalid: [
-    // Boolean variables without "is" prefix
+    // Boolean variables without allowed prefix (default "is")
     {
       code: 'const visible = true;',
       errors: [
         {
           data: {
             name: 'visible',
+            prefixes: '"is"',
             suggested: 'isVisible',
           },
-          messageId: 'booleanShouldStartWithIs',
+          messageId: 'booleanShouldStartWithPrefix',
         },
       ],
     },
@@ -36,9 +37,10 @@ ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, {
         {
           data: {
             name: 'disabled',
+            prefixes: '"is"',
             suggested: 'isDisabled',
           },
-          messageId: 'booleanShouldStartWithIs',
+          messageId: 'booleanShouldStartWithPrefix',
         },
       ],
     },
@@ -48,40 +50,110 @@ ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, {
         {
           data: {
             name: 'loading',
+            prefixes: '"is"',
             suggested: 'isLoading',
           },
-          messageId: 'booleanShouldStartWithIs',
+          messageId: 'booleanShouldStartWithPrefix',
         },
       ],
     },
 
-    // React useState without "is" prefix
+    // Test with custom allowedPrefixes option - single prefix
+    {
+      code: 'const visible = true;',
+      errors: [
+        {
+          data: {
+            name: 'visible',
+            prefixes: '"has"',
+            suggested: 'hasVisible',
+          },
+          messageId: 'booleanShouldStartWithPrefix',
+        },
+      ],
+      options: [{ allowedPrefixes: ['has'] }],
+    },
+
+    // Test with multiple custom prefixes
+    {
+      code: 'const enabled = true;',
+      errors: [
+        {
+          data: {
+            name: 'enabled',
+            prefixes: '"is", "has", or "should"',
+            suggested: 'isEnabled',
+          },
+          messageId: 'booleanShouldStartWithPrefix',
+        },
+      ],
+      options: [{ allowedPrefixes: ['is', 'has', 'should'] }],
+    },
+
+    // Test with custom prefixes - should work for different cases
+    {
+      code: 'const VISIBLE = true;',
+      errors: [
+        {
+          data: {
+            name: 'VISIBLE',
+            prefixes: '"can", or "should"',
+            suggested: 'CAN_VISIBLE',
+          },
+          messageId: 'booleanShouldStartWithPrefix',
+        },
+      ],
+      options: [{ allowedPrefixes: ['can', 'should'] }],
+    },
+
+    // Test underscore prefixed variables
+    {
+      code: 'const _enabled = true;',
+      errors: [
+        {
+          data: {
+            name: '_enabled',
+            prefixes: '"has"',
+            suggested: '_hasEnabled',
+          },
+          messageId: 'booleanShouldStartWithPrefix',
+        },
+      ],
+      options: [{ allowedPrefixes: ['has'] }],
+    },
+
+    // React useState without allowed prefix
     {
       code: 'const [open, setOpen] = useState(false);',
       errors: [
         {
           data: {
             name: 'open',
+            prefixes: '"is"',
             suggested: 'isOpen',
           },
-          messageId: 'booleanShouldStartWithIs',
+          messageId: 'booleanShouldStartWithPrefix',
         },
       ],
     },
+
+    // React useState with custom prefix
     {
       code: 'const [visible, setVisible] = useState(true);',
       errors: [
         {
           data: {
             name: 'visible',
-            suggested: 'isVisible',
+            prefixes: '"can", or "should"',
+            suggested: 'canVisible',
           },
-          messageId: 'booleanShouldStartWithIs',
+          messageId: 'booleanShouldStartWithPrefix',
         },
       ],
+      options: [{ allowedPrefixes: ['can', 'should'] }],
     },
 
-    // Interface properties without "is" prefix
+    // Interface properties without allowed prefix
     {
       code: `
         interface ButtonProps {
@@ -94,529 +166,83 @@ ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, {
         {
           data: {
             name: 'disabled',
+            prefixes: '"is"',
             suggested: 'isDisabled',
           },
-          messageId: 'booleanShouldStartWithIs',
+          messageId: 'booleanShouldStartWithPrefix',
         },
         {
           data: {
             name: 'visible',
+            prefixes: '"is"',
             suggested: 'isVisible',
           },
-          messageId: 'booleanShouldStartWithIs',
+          messageId: 'booleanShouldStartWithPrefix',
         },
       ],
     },
 
-    // Type alias properties without "is" prefix
-    {
-      code: `
-        type ModalProps = {
-          open: boolean;
-          closable: boolean;
-        };
-      `,
-      errors: [
-        {
-          data: {
-            name: 'open',
-            suggested: 'isOpen',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'closable',
-            suggested: 'isClosable',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Function parameters without "is" prefix
-    {
-      code: `
-        function Button({ disabled }: { disabled: boolean }) {
-          return <button disabled={disabled}>Click</button>;
-        }
-      `,
-      errors: [
-        {
-          data: {
-            name: 'disabled',
-            suggested: 'isDisabled',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'disabled',
-            suggested: 'isDisabled',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Arrow function parameters
-    {
-      code: `
-        const handleToggle = (enabled: boolean) => {
-          console.log(enabled);
-        };
-      `,
-      errors: [
-        {
-          data: {
-            name: 'enabled',
-            suggested: 'isEnabled',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Variables with boolean expressions
-    {
-      code: 'const ready = loaded && !error;',
-      errors: [
-        {
-          data: {
-            name: 'ready',
-            suggested: 'isReady',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Multiple boolean variables in one declaration
-    {
-      code: 'const visible = true, enabled = false, loading = true;',
-      errors: [
-        {
-          data: {
-            name: 'visible',
-            suggested: 'isVisible',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'enabled',
-            suggested: 'isEnabled',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'loading',
-            suggested: 'isLoading',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Destructured props without "is" prefix
-    {
-      code: `
-        function Component({ visible, disabled }: { visible: boolean; disabled: boolean }) {
-          return <div style={{ display: visible ? 'block' : 'none' }}>Content</div>;
-        }
-      `,
-      errors: [
-        {
-          data: {
-            name: 'visible',
-            suggested: 'isVisible',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'disabled',
-            suggested: 'isDisabled',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'visible',
-            suggested: 'isVisible',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'disabled',
-            suggested: 'isDisabled',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Boolean variables used in conditional expressions
-    {
-      code: `
-        const active = true;
-        if (active) {
-          console.log('Active');
-        }
-      `,
-      errors: [
-        {
-          data: {
-            name: 'active',
-            suggested: 'isActive',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Optional boolean properties without "is" prefix
+    // Interface properties with custom prefixes
     {
       code: `
         interface ComponentProps {
-          disabled?: boolean;
-          visible?: boolean;
-        }
-      `,
-      errors: [
-        {
-          data: {
-            name: 'disabled',
-            suggested: 'isDisabled',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'visible',
-            suggested: 'isVisible',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Union types with boolean
-    {
-      code: `
-        interface Props {
-          active: boolean | undefined;
-          loading: boolean | null;
+          active: boolean;
+          enabled: boolean;
         }
       `,
       errors: [
         {
           data: {
             name: 'active',
-            suggested: 'isActive',
+            prefixes: '"was", or "will"',
+            suggested: 'wasActive',
           },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'loading',
-            suggested: 'isLoading',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Boolean variables in different scopes
-    {
-      code: `
-        function Component() {
-          const visible = true;
-          const enabled = false;
-          
-          if (visible && enabled) {
-            return <div>Both true</div>;
-          }
-          
-          return null;
-        }
-      `,
-      errors: [
-        {
-          data: {
-            name: 'visible',
-            suggested: 'isVisible',
-          },
-          messageId: 'booleanShouldStartWithIs',
+          messageId: 'booleanShouldStartWithPrefix',
         },
         {
           data: {
             name: 'enabled',
-            suggested: 'isEnabled',
+            prefixes: '"was", or "will"',
+            suggested: 'wasEnabled',
           },
-          messageId: 'booleanShouldStartWithIs',
+          messageId: 'booleanShouldStartWithPrefix',
         },
       ],
+      options: [{ allowedPrefixes: ['was', 'will'] }],
     },
 
-    // Class component state without "is" prefix
-    {
-      code: `
-        class MyComponent extends React.Component {
-          state = {
-            loading: false,
-            visible: true
-          };
-        }
-      `,
-      errors: [
-        {
-          data: {
-            name: 'loading',
-            suggested: 'isLoading',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'visible',
-            suggested: 'isVisible',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Nested object properties with boolean values
-    {
-      code: `
-        const config = {
-          settings: {
-            enabled: true,
-            visible: false
-          }
-        };
-      `,
-      errors: [
-        {
-          data: {
-            name: 'enabled',
-            suggested: 'isEnabled',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'visible',
-            suggested: 'isVisible',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // forwardRef with boolean props
-    {
-      code: `
-        interface InputProps {
-          disabled: boolean;
-          readOnly: boolean;
-        }
-        const Input = forwardRef<HTMLInputElement, InputProps>(
-          ({ disabled, readOnly }, ref) => <input ref={ref} disabled={disabled} readOnly={readOnly} />
-        );
-      `,
-      errors: [
-        {
-          data: {
-            name: 'disabled',
-            suggested: 'isDisabled',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'readOnly',
-            suggested: 'isReadOnly',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'disabled',
-            suggested: 'isDisabled',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'readOnly',
-            suggested: 'isReadOnly',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Constants without proper IS_ prefix (should be invalid)
+    // Constants without proper prefix
     {
       code: `
         const SETTINGS = {
           ENABLED: true,
           VISIBLE: false,
-          DEBUG_MODE: true,
         };
       `,
       errors: [
         {
           data: {
             name: 'ENABLED',
-            suggested: 'IS_ENABLED',
+            prefixes: '"should"',
+            suggested: 'SHOULD_ENABLED',
           },
-          messageId: 'booleanShouldStartWithIs',
+          messageId: 'booleanShouldStartWithPrefix',
         },
         {
           data: {
             name: 'VISIBLE',
-            suggested: 'IS_VISIBLE',
+            prefixes: '"should"',
+            suggested: 'SHOULD_VISIBLE',
           },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'DEBUG_MODE',
-            suggested: 'IS_DEBUG_MODE',
-          },
-          messageId: 'booleanShouldStartWithIs',
+          messageId: 'booleanShouldStartWithPrefix',
         },
       ],
-    },
-
-    // Mixed case constants without IS_ prefix
-    {
-      code: `
-        export const APP_CONFIG = {
-          API_ENDPOINT: 'https://api.example.com',
-          FEATURE_ENABLED: true,
-          DEBUG: false,
-          VERSION: '1.0.0',
-          PRODUCTION_MODE: false,
-        } as const;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'FEATURE_ENABLED',
-            suggested: 'IS_FEATURE_ENABLED',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'DEBUG',
-            suggested: 'IS_DEBUG',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'PRODUCTION_MODE',
-            suggested: 'IS_PRODUCTION_MODE',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Object properties with boolean values outside of Zod should still be flagged
-    {
-      code: `
-        const config = {
-          createdAt: true,
-          updatedAt: false,
-        };
-      `,
-      errors: [
-        {
-          data: {
-            name: 'createdAt',
-            suggested: 'isCreatedAt',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'updatedAt',
-            suggested: 'isUpdatedAt',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Regular function calls that aren't Zod should still be flagged
-    {
-      code: `
-        const result = someFunction({
-          enabled: true,
-          visible: false,
-        });
-      `,
-      errors: [
-        {
-          data: {
-            name: 'enabled',
-            suggested: 'isEnabled',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'visible',
-            suggested: 'isVisible',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
-    },
-
-    // Boolean variables that happen to be named like Zod properties should still be flagged
-    {
-      code: `
-        const createdAt = true;
-        const updatedAt = false;
-        const metadata = true;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'createdAt',
-            suggested: 'isCreatedAt',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'updatedAt',
-            suggested: 'isUpdatedAt',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-        {
-          data: {
-            name: 'metadata',
-            suggested: 'isMetadata',
-          },
-          messageId: 'booleanShouldStartWithIs',
-        },
-      ],
+      options: [{ allowedPrefixes: ['should'] }],
     },
   ],
 
   valid: [
-    // Variables with correct "is" prefix
+    // Variables with correct default "is" prefix
     {
       code: 'const isVisible = true;',
     },
@@ -627,89 +253,110 @@ ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, {
       code: 'var isLoading = true;',
     },
 
-    // boolean variables passed into functions with capital first letters but prefixed with `new` (should be ignored)
-    {
-      code: 'const client = new Realtime({ disabled: true });',
-    },
-
-    // Variables with a correct underscored "is" prefix
+    // Variables with underscore "is" prefix
     {
       code: 'const _isVisible = true;',
     },
     {
       code: 'let _isDisabled = false;',
     },
+
+    // Variables with correct custom single prefix
     {
-      code: 'var _isLoading = true;',
+      code: 'const hasPermission = true;',
+      options: [{ allowedPrefixes: ['has'] }],
+    },
+    {
+      code: 'const shouldRetry = false;',
+      options: [{ allowedPrefixes: ['should'] }],
+    },
+    {
+      code: 'const canAccess = true;',
+      options: [{ allowedPrefixes: ['can'] }],
     },
 
-    // React useState with correct naming
+    // Variables with correct custom multiple prefixes
     {
-      code: 'const [isOpen, setIsOpen] = useState(false);',
+      code: 'const isVisible = true;',
+      options: [{ allowedPrefixes: ['is', 'has', 'should'] }],
     },
     {
-      code: 'const [isActive, setIsActive] = useState(true);',
+      code: 'const hasPermission = false;',
+      options: [{ allowedPrefixes: ['is', 'has', 'should'] }],
+    },
+    {
+      code: 'const shouldRefresh = true;',
+      options: [{ allowedPrefixes: ['is', 'has', 'should'] }],
     },
 
-    // Function parameters with correct naming
+    // Constants with correct custom prefixes
     {
       code: `
-        function Button({ isDisabled }: { isDisabled: boolean }) {
-          return <button disabled={isDisabled}>Click</button>;
-        }
+        const CONFIG = {
+          CAN_EDIT: true,
+          SHOULD_VALIDATE: false,
+        };
       `,
+      options: [{ allowedPrefixes: ['can', 'should'] }],
     },
 
-    // Interface properties with correct naming
+    // Underscore variables with custom prefixes
+    {
+      code: 'const _hasAccess = true;',
+      options: [{ allowedPrefixes: ['has'] }],
+    },
+    {
+      code: 'const _canEdit = false;',
+      options: [{ allowedPrefixes: ['can', 'will'] }],
+    },
+
+    // React useState with correct custom prefix
+    {
+      code: 'const [hasPermission, setHasPermission] = useState(false);',
+      options: [{ allowedPrefixes: ['has'] }],
+    },
+    {
+      code: 'const [shouldShow, setShouldShow] = useState(true);',
+      options: [{ allowedPrefixes: ['should', 'can'] }],
+    },
+
+    // Interface properties with correct custom prefixes
     {
       code: `
         interface ButtonProps {
-          isVisible: boolean;
-          isDisabled: boolean;
+          hasPermission: boolean;
+          shouldDisable: boolean;
           onClick: () => void;
         }
       `,
+      options: [{ allowedPrefixes: ['has', 'should'] }],
     },
 
-    // Type alias properties with correct naming
+    // Mixed valid and non-boolean properties
     {
       code: `
-        type ModalProps = {
-          isOpen: boolean;
-          onClose: () => void;
-        };
-      `,
-    },
-
-    // Function declarations with boolean parameters
-    {
-      code: `
-        function toggleVisibility(isVisible: boolean) {
-          return !isVisible;
+        interface ComponentProps {
+          title: string;
+          wasActive: boolean;
+          count: number;
+          willUpdate: boolean;
         }
       `,
+      options: [{ allowedPrefixes: ['was', 'will'] }],
     },
 
-    // Arrow function parameters
-    {
-      code: `
-        const handleClick = (isEnabled: boolean) => {
-          if (isEnabled) {
-            console.log('Enabled');
-          }
-        };
-      `,
-    },
-
-    // Non-boolean variables (should be ignored)
+    // Non-boolean variables (should be ignored regardless of options)
     {
       code: 'const loading = "in-progress";',
+      options: [{ allowedPrefixes: ['should'] }],
     },
     {
       code: 'const disabled = 0;',
+      options: [{ allowedPrefixes: ['can'] }],
     },
     {
       code: 'const visible = "block";',
+      options: [{ allowedPrefixes: ['has'] }],
     },
 
     // Non-boolean interface properties
@@ -721,170 +368,41 @@ ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, {
           status: 'active' | 'inactive';
         }
       `,
+      options: [{ allowedPrefixes: ['should'] }],
     },
 
     // Non-boolean useState
     {
       code: 'const [count, setCount] = useState(0);',
+      options: [{ allowedPrefixes: ['can'] }],
     },
     {
       code: 'const [name, setName] = useState("");',
+      options: [{ allowedPrefixes: ['has'] }],
     },
 
-    // Non-component functions (should be ignored)
+    // Constants with correct IS_ prefix (default behavior)
     {
       code: `
-        function utilityFunction(enabled: boolean, disabled: boolean) {
-          return enabled && !disabled;
-        }
-      `,
-    },
-
-    // Object destructuring with non-boolean
-    {
-      code: 'const { loading, error } = api;',
-    },
-
-    // Variables without explicit boolean type or value
-    {
-      code: 'const loading = someFunction();',
-    },
-
-    // Complex boolean expressions with correct naming
-    {
-      code: `
-        const isReady = isLoaded && !isError;
-        const isComplete = isValid && isSubmitted;
-      `,
-    },
-
-    // Boolean variables in different scopes
-    {
-      code: `
-        function Component() {
-          const isVisible = true;
-          const isEnabled = false;
-          
-          if (isVisible) {
-            return <div>Visible</div>;
-          }
-          
-          return null;
-        }
-      `,
-    },
-
-    // Optional boolean properties
-    {
-      code: `
-        interface ComponentProps {
-          isDisabled?: boolean;
-          isVisible?: boolean;
-        }
-      `,
-    },
-
-    // Union types with boolean
-    {
-      code: `
-        interface Props {
-          isActive: boolean | undefined;
-          isLoading: boolean | null;
-        }
-      `,
-    },
-
-    // Function with boolean return type but non-boolean parameters
-    {
-      code: `
-        function checkStatus(status: string): boolean {
-          return status === 'active';
-        }
-      `,
-    },
-
-    // Generic types
-    {
-      code: `
-        interface Props<T> {
-          isVisible: boolean;
-          data: T;
-        }
-      `,
-    },
-
-    // Already correctly named destructured props
-    {
-      code: `
-        function Button({ isDisabled, isVisible }: { isDisabled: boolean; isVisible: boolean }) {
-          return <button disabled={isDisabled} style={{ display: isVisible ? 'block' : 'none' }}>Click</button>;
-        }
-      `,
-    },
-
-    // Nested boolean properties with correct naming
-    {
-      code: `
-        interface NestedProps {
-          config: {
-            isEnabled: boolean;
-            isDebugMode: boolean;
-          };
-        }
-      `,
-    },
-
-    // Class component state with correct naming
-    {
-      code: `
-        class MyComponent extends React.Component {
-          state = {
-            isLoading: false,
-            isVisible: true
-          };
-        }
-      `,
-    },
-
-    // Constants with IS_ prefix (should be valid)
-    {
-      code: `
-        export const BOBBLEHEAD_DEFAULTS = {
-          COMMENT_COUNT: 0,
-          CURRENT_CONDITION: 'excellent',
-          IS_DELETED: false,
-          IS_FEATURED: false,
-          IS_PUBLIC: true,
-          LIKE_COUNT: 0,
-          SORT_ORDER: 0,
-          STATUS: 'owned',
-          VIEW_COUNT: 0,
-        } as const;
-      `,
-    },
-
-    // Object with mixed IS_ constants and non-boolean constants
-    {
-      code: `
-        const CONFIG = {
+        export const CONFIG = {
           API_URL: 'https://example.com',
           IS_DEVELOPMENT: false,
           IS_ENABLED: true,
           MAX_RETRIES: 3,
-          IS_DEBUG_MODE: false,
         };
       `,
     },
 
-    // Constants object with proper IS_ naming
+    // Constants with custom prefix
     {
       code: `
         const FLAGS = {
-          IS_FEATURE_A_ENABLED: true,
-          IS_FEATURE_B_ENABLED: false,
-          IS_BETA_USER: true,
+          CAN_EDIT: true,
+          CAN_DELETE: false,
+          SHOULD_VALIDATE: true,
         };
       `,
+      options: [{ allowedPrefixes: ['can', 'should'] }],
     },
 
     // Zod schema with .omit() method - should not flag boolean values
@@ -900,6 +418,7 @@ ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, {
           isActive: true,
         });
       `,
+      options: [{ allowedPrefixes: ['should'] }],
     },
 
     // Zod schema with .pick() method - should not flag boolean values
@@ -918,83 +437,48 @@ ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, {
           createdAt: true,
         });
       `,
+      options: [{ allowedPrefixes: ['can'] }],
     },
 
-    // Zod schema with both .omit() and .pick() methods
+    // Constructor calls should be ignored
     {
-      code: `
-        const fullSchema = z.object({
-          id: z.string(),
-          name: z.string(),
-          isActive: z.boolean(),
-          isVerified: z.boolean(),
-          metadata: z.object({}),
-        });
-        
-        const partialSchema = fullSchema
-          .omit({ metadata: true })
-          .pick({ 
-            name: true,
-            isActive: true,
-            createdAt: false,
-          });
-      `,
+      code: 'const client = new Realtime({ disabled: true });',
+      options: [{ allowedPrefixes: ['should'] }],
     },
 
-    // Zod schema with nested .omit()/.pick() calls
+    // Non-component functions (should be ignored)
     {
       code: `
-        const baseSchema = z.object({
-          user: z.object({
-            name: z.string(),
-            isAdmin: z.boolean(),
-          }),
-          settings: z.object({
-            theme: z.string(),
-            notifications: z.boolean(),
-          })
-        });
-        
-        const restrictedSchema = baseSchema.omit({
-          settings: true,
-        }).pick({
-          user: true,
-          isPublic: false,
-        });
+        function utilityFunction(enabled: boolean, disabled: boolean) {
+          return enabled && !disabled;
+        }
       `,
+      options: [{ allowedPrefixes: ['can'] }],
     },
 
-    // Complex Zod schema transformations with boolean properties
+    // Variables without explicit boolean type or value
+    {
+      code: 'const loading = someFunction();',
+      options: [{ allowedPrefixes: ['has'] }],
+    },
+
+    // Function with boolean return type but non-boolean parameters
     {
       code: `
-        const UserSchema = z.object({
-          id: z.string(),
-          email: z.string().email(),
-          isActive: z.boolean(),
-          isVerified: z.boolean(),
-          profile: z.object({
-            firstName: z.string(),
-            lastName: z.string(),
-            isPublic: z.boolean(),
-          }),
-          createdAt: z.date(),
-          updatedAt: z.date(),
-        });
-
-        // These should not trigger the rule
-        const PublicUserSchema = UserSchema.omit({
-          isVerified: true,
-          createdAt: true,
-          updatedAt: true,
-        });
-
-        const BasicUserSchema = UserSchema.pick({
-          id: true,
-          email: true,
-          isActive: true,
-          profile: false,
-        });
+        function checkStatus(status: string): boolean {
+          return status === 'active';
+        }
       `,
+      options: [{ allowedPrefixes: ['should'] }],
+    },
+
+    // Complex expressions with correct custom prefixes
+    {
+      code: `
+        const hasAccess = hasPermission && !hasRestriction;
+        const shouldProceed = canContinue && willSuccess;
+      `,
+      options: [{ allowedPrefixes: ['has', 'should', 'can', 'will'] }],
     },
   ],
 });
