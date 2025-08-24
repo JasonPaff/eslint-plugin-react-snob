@@ -20,6 +20,20 @@ The rule applies to:
 - Object properties with boolean values
 - Class properties with boolean values or types
 
+## Exception: Zod Schema Methods
+
+The rule makes a special exception for Zod schema `.omit()` and `.pick()` method calls. When using these Zod utilities, boolean values in the property selection objects are not required to follow the "is" prefix convention. This is because these boolean values represent whether to include/exclude properties in the schema transformation, not actual boolean data values.
+
+```jsx
+// ✅ Exception: Zod .omit() and .pick() methods
+const schema = userSchema.omit({
+  createdAt: true,    // OK - indicates property should be omitted
+  updatedAt: false,   // OK - indicates property should be included
+});
+```
+
+This exception only applies to object properties directly within `.omit()` and `.pick()` method calls. Regular object properties and boolean variables elsewhere in the code must still follow the "is" prefix convention.
+
 Examples of **incorrect** code for this rule:
 
 ```jsx
@@ -264,6 +278,36 @@ const FLAGS = {
 // ✅ Destructuring non-boolean values
 const { loading, error } = api;
 const loading = someFunction();
+```
+
+```jsx
+// ✅ Zod schema .omit() and .pick() methods (exception)
+const userSchema = z.object({
+  name: z.string(),
+  age: z.number(),
+  isActive: z.boolean(),
+});
+
+// Boolean values in .omit() and .pick() are allowed without "is" prefix
+const publicUserSchema = userSchema.omit({
+  isActive: true,      // ✅ Allowed in .omit()
+  createdAt: true,     // ✅ Allowed in .omit()  
+});
+
+const basicUserSchema = userSchema.pick({
+  name: true,          // ✅ Allowed in .pick()
+  email: true,         // ✅ Allowed in .pick()
+  updatedAt: false,    // ✅ Allowed in .pick()
+});
+
+// Complex Zod transformations are also allowed
+const transformedSchema = baseSchema
+  .omit({ metadata: true })
+  .pick({ 
+    name: true,
+    isActive: true,
+    createdAt: false,
+  });
 ```
 
 ## Options

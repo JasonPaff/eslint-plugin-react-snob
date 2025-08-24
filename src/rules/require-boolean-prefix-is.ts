@@ -77,6 +77,31 @@ function isBooleanExpression(node: TSESTree.Expression): boolean {
 }
 
 /**
+ * Checks if a property is inside a Zod .omit() or .pick() method call
+ */
+function isInZodOmitOrPickMethod(node: TSESTree.Node): boolean {
+  let current: TSESTree.Node | null = node;
+
+  // Walk up the AST to find a CallExpression with .omit() or .pick()
+  while (current) {
+    if (current.type === 'CallExpression') {
+      const { callee } = current;
+      
+      // Check if this is a member expression call like schema.omit() or schema.pick()
+      if (callee.type === 'MemberExpression' && 
+          callee.property.type === 'Identifier' &&
+          (callee.property.name === 'omit' || callee.property.name === 'pick')) {
+        return true;
+      }
+    }
+    
+    current = current.parent || null;
+  }
+
+  return false;
+}
+
+/**
  * Checks if a CallExpression is a useState call with a boolean initial value
  */
 function isUseStateWithBoolean(node: TSESTree.CallExpression): boolean {
@@ -284,6 +309,11 @@ export const requireBooleanPrefixIs = createRule({
         if (node.key.type !== 'Identifier') return;
 
         const name = node.key.name;
+
+        // Skip if this property is inside a Zod .omit() or .pick() method
+        if (isInZodOmitOrPickMethod(node)) {
+          return;
+        }
 
         // Check if value is boolean
         if (

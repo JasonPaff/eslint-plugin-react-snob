@@ -529,6 +529,90 @@ ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, {
         },
       ],
     },
+
+    // Object properties with boolean values outside of Zod should still be flagged
+    {
+      code: `
+        const config = {
+          createdAt: true,
+          updatedAt: false,
+        };
+      `,
+      errors: [
+        {
+          data: {
+            name: 'createdAt',
+            suggested: 'isCreatedAt',
+          },
+          messageId: 'booleanShouldStartWithIs',
+        },
+        {
+          data: {
+            name: 'updatedAt',
+            suggested: 'isUpdatedAt',
+          },
+          messageId: 'booleanShouldStartWithIs',
+        },
+      ],
+    },
+
+    // Regular function calls that aren't Zod should still be flagged
+    {
+      code: `
+        const result = someFunction({
+          enabled: true,
+          visible: false,
+        });
+      `,
+      errors: [
+        {
+          data: {
+            name: 'enabled',
+            suggested: 'isEnabled',
+          },
+          messageId: 'booleanShouldStartWithIs',
+        },
+        {
+          data: {
+            name: 'visible',
+            suggested: 'isVisible',
+          },
+          messageId: 'booleanShouldStartWithIs',
+        },
+      ],
+    },
+
+    // Boolean variables that happen to be named like Zod properties should still be flagged
+    {
+      code: `
+        const createdAt = true;
+        const updatedAt = false;
+        const metadata = true;
+      `,
+      errors: [
+        {
+          data: {
+            name: 'createdAt',
+            suggested: 'isCreatedAt',
+          },
+          messageId: 'booleanShouldStartWithIs',
+        },
+        {
+          data: {
+            name: 'updatedAt',
+            suggested: 'isUpdatedAt',
+          },
+          messageId: 'booleanShouldStartWithIs',
+        },
+        {
+          data: {
+            name: 'metadata',
+            suggested: 'isMetadata',
+          },
+          messageId: 'booleanShouldStartWithIs',
+        },
+      ],
+    },
   ],
 
   valid: [
@@ -784,6 +868,116 @@ ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, {
           IS_FEATURE_B_ENABLED: false,
           IS_BETA_USER: true,
         };
+      `,
+    },
+
+    // Zod schema with .omit() method - should not flag boolean values
+    {
+      code: `
+        const userSchema = z.object({
+          name: z.string(),
+          age: z.number(),
+          isActive: z.boolean(),
+        });
+        
+        const publicUserSchema = userSchema.omit({
+          isActive: true,
+        });
+      `,
+    },
+
+    // Zod schema with .pick() method - should not flag boolean values
+    {
+      code: `
+        const userSchema = z.object({
+          name: z.string(),
+          email: z.string(),
+          isVerified: z.boolean(),
+          createdAt: z.date(),
+        });
+        
+        const basicUserSchema = userSchema.pick({
+          name: true,
+          email: true,
+          createdAt: true,
+        });
+      `,
+    },
+
+    // Zod schema with both .omit() and .pick() methods
+    {
+      code: `
+        const fullSchema = z.object({
+          id: z.string(),
+          name: z.string(),
+          isActive: z.boolean(),
+          isVerified: z.boolean(),
+          metadata: z.object({}),
+        });
+        
+        const partialSchema = fullSchema
+          .omit({ metadata: true })
+          .pick({ 
+            name: true,
+            isActive: true,
+            createdAt: false,
+          });
+      `,
+    },
+
+    // Zod schema with nested .omit()/.pick() calls
+    {
+      code: `
+        const baseSchema = z.object({
+          user: z.object({
+            name: z.string(),
+            isAdmin: z.boolean(),
+          }),
+          settings: z.object({
+            theme: z.string(),
+            notifications: z.boolean(),
+          })
+        });
+        
+        const restrictedSchema = baseSchema.omit({
+          settings: true,
+        }).pick({
+          user: true,
+          isPublic: false,
+        });
+      `,
+    },
+
+    // Complex Zod schema transformations with boolean properties
+    {
+      code: `
+        const UserSchema = z.object({
+          id: z.string(),
+          email: z.string().email(),
+          isActive: z.boolean(),
+          isVerified: z.boolean(),
+          profile: z.object({
+            firstName: z.string(),
+            lastName: z.string(),
+            isPublic: z.boolean(),
+          }),
+          createdAt: z.date(),
+          updatedAt: z.date(),
+        });
+
+        // These should not trigger the rule
+        const PublicUserSchema = UserSchema.omit({
+          isVerified: true,
+          createdAt: true,
+          updatedAt: true,
+        });
+
+        const BasicUserSchema = UserSchema.pick({
+          id: true,
+          email: true,
+          isActive: true,
+          profile: false,
+        });
       `,
     },
   ],
