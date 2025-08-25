@@ -1,7 +1,11 @@
 import { RuleTester } from '@typescript-eslint/rule-tester';
 
 import { componentPropInterfaceNaming } from '../../src/rules/component-prop-interface-naming';
-import { createValidCase, createComponentPropInterfaceNamingInvalidCase, PARSER_CONFIG } from '../../src/utils/test-utils';
+import {
+  createValidCase,
+  createComponentPropInterfaceNamingInvalidCase,
+  PARSER_CONFIG,
+} from '../../src/utils/test-utils';
 
 // Test cases for basic function components with incorrectly named props interfaces
 const basicFunctionComponentCases = [
@@ -568,11 +572,7 @@ const TEST_CASES = {
     ...wrongPropsSuffixCases,
     ...exportedComponentCases,
   ],
-  valid: [
-    ...correctlyNamedCases,
-    ...ignoredComponentCases,
-    ...complexComponentCases,
-  ],
+  valid: [...correctlyNamedCases, ...ignoredComponentCases, ...complexComponentCases],
 };
 
 const ruleTester = new RuleTester(PARSER_CONFIG);

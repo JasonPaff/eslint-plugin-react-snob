@@ -44,26 +44,26 @@ const basicBooleanVariableCases = [
 
 // Test cases for custom single prefix configuration
 const customSinglePrefixCases = [
-  createBooleanPrefixInvalidCase('const visible = true;', 'visible', '"has"', 'hasVisible', 
-    { allowedPrefixes: ['has'] }
-  ),
+  createBooleanPrefixInvalidCase('const visible = true;', 'visible', '"has"', 'hasVisible', {
+    allowedPrefixes: ['has'],
+  }),
 ];
 
 // Test cases for custom multiple prefixes configuration
 const customMultiplePrefixesCases = [
-  createBooleanPrefixInvalidCase('const enabled = true;', 'enabled', '"is", "has", or "should"', 'isEnabled', 
-    { allowedPrefixes: ['is', 'has', 'should'] }
-  ),
-  createBooleanPrefixInvalidCase('const VISIBLE = true;', 'VISIBLE', '"can", or "should"', 'CAN_VISIBLE', 
-    { allowedPrefixes: ['can', 'should'] }
-  ),
+  createBooleanPrefixInvalidCase('const enabled = true;', 'enabled', '"is", "has", or "should"', 'isEnabled', {
+    allowedPrefixes: ['is', 'has', 'should'],
+  }),
+  createBooleanPrefixInvalidCase('const VISIBLE = true;', 'VISIBLE', '"can", or "should"', 'CAN_VISIBLE', {
+    allowedPrefixes: ['can', 'should'],
+  }),
 ];
 
 // Test cases for underscore-prefixed variables
 const underscorePrefixedVariableCases = [
-  createBooleanPrefixInvalidCase('const _enabled = true;', '_enabled', '"has"', '_hasEnabled', 
-    { allowedPrefixes: ['has'] }
-  ),
+  createBooleanPrefixInvalidCase('const _enabled = true;', '_enabled', '"has"', '_hasEnabled', {
+    allowedPrefixes: ['has'],
+  }),
 ];
 
 // Test cases for React useState hooks
@@ -85,7 +85,7 @@ const interfacePropertyCases = [
         interface ButtonProps {
           disabled: boolean;
           visible: boolean;
-          onClick: () => void;
+          onClick: () => void; 
         }
       `,
     errors: [

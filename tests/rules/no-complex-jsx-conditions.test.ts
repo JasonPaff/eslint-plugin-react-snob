@@ -82,7 +82,8 @@ const componentAttributeCases = [
       </Button>
     );
   `),
-  createComplexConditionInvalidCase(`
+  createComplexConditionInvalidCase(
+    `
     return (
       <Form
         disabled={!user || !user.isActive || user.role !== 'admin'}
@@ -90,7 +91,9 @@ const componentAttributeCases = [
         required={user && user.settings && user.settings.strictMode}
       />
     );
-  `, 3),
+  `,
+    3
+  ),
 ];
 
 // Test cases for complex comparisons and array operations
@@ -134,7 +137,8 @@ const functionCallCases = [
 
 // Test cases for multiple complex conditions in same component
 const multipleComplexConditionCases = [
-  createComplexConditionInvalidCase(`
+  createComplexConditionInvalidCase(
+    `
     return (
       <div>
         <Modal open={user && data && !isLoading && !error}>
@@ -145,7 +149,9 @@ const multipleComplexConditionCases = [
         </Button>
       </div>
     );
-  `, 2),
+  `,
+    2
+  ),
 ];
 
 // Test cases for complex conditions in fragments and special syntax
