@@ -36,6 +36,22 @@ export function createNoInlineStylesInvalidCase(code: string) {
   };
 }
 
+// Helper function to create invalid test cases for require-derived-conditional-prefix rule
+export function createDerivedConditionalInvalidCase(code: string, name: string, suggested: string) {
+  return {
+    code,
+    errors: [
+      {
+        data: {
+          name,
+          suggested,
+        },
+        messageId: 'derivedConditionalShouldStartWithUnderscore' as const,
+      },
+    ],
+  };
+}
+
 // Helper function to create invalid test cases for no-complex-jsx-conditions rule
 export function createComplexConditionInvalidCase(code: string, errorCount: number = 1) {
   return {

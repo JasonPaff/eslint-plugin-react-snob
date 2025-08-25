@@ -1,504 +1,346 @@
 import { RuleTester } from '@typescript-eslint/rule-tester';
 
 import { requireDerivedConditionalPrefix } from '../../src/rules/require-derived-conditional-prefix';
+import { createValidCase, createDerivedConditionalInvalidCase, PARSER_CONFIG } from '../../src/utils/test-utils';
 
-const ruleTester = new RuleTester({
-  languageOptions: {
-    parser: require('@typescript-eslint/parser'),
-    parserOptions: {
-      ecmaFeatures: {
-        jsx: true,
+// Test cases for basic logical expressions used in JSX conditional rendering
+const basicLogicalExpressionCases = [
+  createDerivedConditionalInvalidCase(
+    `
+      const isSubmitReady = isValid && !isLoading;
+      return <div>{isSubmitReady && <button>Submit</button>}</div>;
+    `,
+    'isSubmitReady',
+    '_isSubmitReady'
+  ),
+  createDerivedConditionalInvalidCase(
+    `
+      const hasError = error || validationError;
+      return <div>{hasError && <ErrorMessage />}</div>;
+    `,
+    'hasError',
+    '_hasError'
+  ),
+  createDerivedConditionalInvalidCase(
+    `
+      const canEdit = hasPermission && !isReadOnly;
+      return <div>{canEdit && <EditButton />}</div>;
+    `,
+    'canEdit',
+    '_canEdit'
+  ),
+];
+
+// Test cases for complex logical expressions with multiple operators
+const complexLogicalExpressionCases = [
+  createDerivedConditionalInvalidCase(
+    `
+      const canProceed = isAuthenticated && isVerified && !isBanned;
+      return <Conditional condition={canProceed}><NextStep /></Conditional>;
+    `,
+    'canProceed',
+    '_canProceed'
+  ),
+  createDerivedConditionalInvalidCase(
+    `
+      const hasValidData = data && data.length > 0 && !data.hasError;
+      return <div>{hasValidData ? <DataTable /> : <EmptyState />}</div>;
+    `,
+    'hasValidData',
+    '_hasValidData'
+  ),
+];
+
+// Test cases for negation and comparison expressions
+const negationAndComparisonCases = [
+  createDerivedConditionalInvalidCase(
+    `
+      const hasNoResults = !results || results.length === 0;
+      return <div>{hasNoResults ? <EmptyState /> : <ResultsList />}</div>;
+    `,
+    'hasNoResults',
+    '_hasNoResults'
+  ),
+  createDerivedConditionalInvalidCase(
+    `
+      const isCompleteProfile = user.progress === 100;
+      return <div>{isCompleteProfile && <CompleteProfileBanner />}</div>;
+    `,
+    'isCompleteProfile',
+    '_isCompleteProfile'
+  ),
+  createDerivedConditionalInvalidCase(
+    `
+      const isCompleteProfile = !!user.name && !!user.email;
+      return isCompleteProfile ? <CompleteView /> : <IncompleteView />;
+    `,
+    'isCompleteProfile',
+    '_isCompleteProfile'
+  ),
+];
+
+// Test cases for multiple derived variables in the same component
+const multipleVariableCases = [
+  {
+    code: `
+      const showWarning = isExpired || hasIssues;
+      const canSubmit = isValid && !isLoading;
+      return (
+        <div>
+          {showWarning && <Warning />}
+          {canSubmit && <button>Submit</button>}
+        </div>
+      );
+    `,
+    errors: [
+      {
+        data: {
+          name: 'showWarning',
+          suggested: '_showWarning',
+        },
+        messageId: 'derivedConditionalShouldStartWithUnderscore',
       },
-      ecmaVersion: 2020,
-      sourceType: 'module',
-    },
+      {
+        data: {
+          name: 'canSubmit',
+          suggested: '_canSubmit',
+        },
+        messageId: 'derivedConditionalShouldStartWithUnderscore',
+      },
+    ],
   },
-});
+];
 
-ruleTester.run('require-derived-conditional-prefix', requireDerivedConditionalPrefix, {
-  invalid: [
-    // Basic logical AND expressions used in JSX conditional rendering
-    {
-      code: `
-        const isSubmitReady = isValid && !isLoading;
-        return <div>{isSubmitReady && <button>Submit</button>}</div>;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'isSubmitReady',
-            suggested: '_isSubmitReady',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
+// Test cases for different component types (arrow functions, function declarations, forwardRef)
+const componentTypeCases = [
+  createDerivedConditionalInvalidCase(
+    `
+      const Component = () => {
+        const shouldRender = isVisible && hasPermission;
+        return <div>{shouldRender && <SecureContent />}</div>;
+      };
+    `,
+    'shouldRender',
+    '_shouldRender'
+  ),
+  createDerivedConditionalInvalidCase(
+    `
+      function Component() {
+        const readyToShow = isLoaded && !isError && hasData;
+        return <div>{readyToShow ? <Content /> : <Loading />}</div>;
+      }
+    `,
+    'readyToShow',
+    '_readyToShow'
+  ),
+  createDerivedConditionalInvalidCase(
+    `
+      const Input = forwardRef(() => {
+        const showError = hasError && !isLoading;
+        return <div>{showError && <ErrorText />}</div>;
+      });
+    `,
+    'showError',
+    '_showError'
+  ),
+];
 
-    // Logical OR expressions used in JSX conditional rendering
-    {
-      code: `
-        const hasError = error || validationError;
-        return <div>{hasError && <ErrorMessage />}</div>;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'hasError',
-            suggested: '_hasError',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
-
-    // Complex logical expressions with multiple operators
-    {
-      code: `
-        const canProceed = isAuthenticated && isVerified && !isBanned;
-        return <Conditional condition={canProceed}><NextStep /></Conditional>;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'canProceed',
-            suggested: '_canProceed',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
-
-    // Negation expressions used in conditional rendering
-    {
-      code: `
-        const hasNoResults = !results || results.length === 0;
-        return <div>{hasNoResults ? <EmptyState /> : <ResultsList />}</div>;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'hasNoResults',
-            suggested: '_hasNoResults',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
-
-    // Comparison expressions used in conditional rendering
-    {
-      code: `
-        const isCompleteProfile = user.progress === 100;
-        return <div>{isCompleteProfile && <CompleteProfileBanner />}</div>;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'isCompleteProfile',
-            suggested: '_isCompleteProfile',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
-
-    // Multiple derived variables in same component
-    {
-      code: `
-        const showWarning = isExpired || hasIssues;
-        const canSubmit = isValid && !isLoading;
+// Test cases for different JSX conditional patterns (ternary, logical AND, custom components)
+const jsxConditionalPatternCases = [
+  createDerivedConditionalInvalidCase(
+    `
+      const isReady = isLoaded && !isLoading;
+      return <div>{isReady ? <Content /> : <Placeholder />}</div>;
+    `,
+    'isReady',
+    '_isReady'
+  ),
+  createDerivedConditionalInvalidCase(
+    `
+      const isEligible = age >= 18 && hasLicense;
+      return <Conditional condition={isEligible}><DriveForm /></Conditional>;
+    `,
+    'isEligible',
+    '_isEligible'
+  ),
+  createDerivedConditionalInvalidCase(
+    `
+      function Component() {
+        const showModal = isOpen && hasContent;
         return (
           <div>
-            {showWarning && <Warning />}
-            {canSubmit && <button>Submit</button>}
+            {showModal && (
+              <Modal>
+                <Content />
+              </Modal>
+            )}
           </div>
         );
-      `,
-      errors: [
-        {
-          data: {
-            name: 'showWarning',
-            suggested: '_showWarning',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-        {
-          data: {
-            name: 'canSubmit',
-            suggested: '_canSubmit',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
+      }
+    `,
+    'showModal',
+    '_showModal'
+  ),
+];
 
-    // Variables with double negation used in conditional rendering
-    {
-      code: `
-        const isCompleteProfile = !!user.name && !!user.email;
-        return isCompleteProfile ? <CompleteView /> : <IncompleteView />;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'isCompleteProfile',
-            suggested: '_isCompleteProfile',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
+// Test cases for different variable declaration types (const, let, var)
+const variableDeclarationTypeCases = [
+  createDerivedConditionalInvalidCase(
+    `
+      let isAvailable = inStock && !isReserved;
+      return <div>{isAvailable && <AddToCart />}</div>;
+    `,
+    'isAvailable',
+    '_isAvailable'
+  ),
+  createDerivedConditionalInvalidCase(
+    `
+      var shouldDisplay = isActive || isPending;
+      return <div>{shouldDisplay ? <StatusIcon /> : null}</div>;
+    `,
+    'shouldDisplay',
+    '_shouldDisplay'
+  ),
+];
 
-    // Arrow function component with derived conditionals
-    {
-      code: `
-        const Component = () => {
-          const shouldRender = isVisible && hasPermission;
-          return <div>{shouldRender && <SecureContent />}</div>;
-        };
-      `,
-      errors: [
-        {
-          data: {
-            name: 'shouldRender',
-            suggested: '_shouldRender',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
+// Test cases for variables with boolean-like prefixes that are still derived
+const booleanPrefixDerivedCases = [
+  createDerivedConditionalInvalidCase(
+    `
+      const isCompleteAndValid = isComplete && isValid;
+      return <div>{isCompleteAndValid && <SuccessMessage />}</div>;
+    `,
+    'isCompleteAndValid',
+    '_isCompleteAndValid'
+  ),
+  createDerivedConditionalInvalidCase(
+    `
+      const canProceedNow = canProceed && !isBlocked;
+      return <div>{canProceedNow ? <ProceedButton /> : <BlockedMessage />}</div>;
+    `,
+    'canProceedNow',
+    '_canProceedNow'
+  ),
+];
 
-    // Function declaration component with derived conditionals
-    {
-      code: `
-        function Component() {
-          const readyToShow = isLoaded && !isError && hasData;
-          return <div>{readyToShow ? <Content /> : <Loading />}</div>;
-        }
-      `,
-      errors: [
-        {
-          data: {
-            name: 'readyToShow',
-            suggested: '_readyToShow',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
+// Test cases for simple boolean state/props that should not trigger the rule
+const simpleBooleanStateCases = [
+  createValidCase(`
+    const isVisible = true;
+    return <div>{isVisible && <span>Content</span>}</div>;
+  `),
+  createValidCase(`
+    const [isOpen, setIsOpen] = useState(false);
+    return <div>{isOpen ? <Modal /> : null}</div>;
+  `),
+];
 
-    // forwardRef component with derived conditionals
-    {
-      code: `
-        const Input = forwardRef(() => {
-          const showError = hasError && !isLoading;
-          return <div>{showError && <ErrorText />}</div>;
-        });
-      `,
-      errors: [
-        {
-          data: {
-            name: 'showError',
-            suggested: '_showError',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
+// Test cases for derived conditional variables with correct underscore prefix
+const correctUnderscorePrefixCases = [
+  createValidCase(`
+    const _isSubmitReady = isValid && !isLoading && hasData;
+    return <div>{_isSubmitReady && <button>Submit</button>}</div>;
+  `),
+  createValidCase(`
+    const _shouldShowError = hasError && !isLoading;
+    return <div>{_shouldShowError ? <ErrorMessage /> : null}</div>;
+  `),
+  createValidCase(`
+    const _canProceed = isAuthenticated && isVerified && !isBanned;
+    return <Conditional condition={_canProceed}><NextStep /></Conditional>;
+  `),
+  createValidCase(`
+    const _hasNoResults = !results || results.length === 0;
+    return <div>{_hasNoResults && <EmptyState />}</div>;
+  `),
+  createValidCase(`
+    const _isCompleteProfile = !!user.name && !!user.email && !!user.avatar;
+    return _isCompleteProfile ? <CompleteView /> : <IncompleteView />;
+  `),
+];
 
-    // Variables used in ternary expressions within JSX
-    {
-      code: `
-        const isReady = isLoaded && !isLoading;
-        return <div>{isReady ? <Content /> : <Placeholder />}</div>;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'isReady',
-            suggested: '_isReady',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
+// Test cases for different component types with correct underscore prefix
+const correctComponentTypeCases = [
+  createValidCase(`
+    const Component = () => {
+      const _showWarning = isExpired || hasIssues;
+      return <div>{_showWarning && <Warning />}</div>;
+    };
+  `),
+  createValidCase(`
+    const Component = forwardRef(() => {
+      const _isReady = isLoaded && !isError;
+      return <div>{_isReady && <Content />}</div>;
+    });
+  `),
+];
 
-    // Variables used in logical AND expressions within JSX
-    {
-      code: `
-        const canEdit = hasPermission && !isReadOnly;
-        return <div>{canEdit && <EditButton />}</div>;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'canEdit',
-            suggested: '_canEdit',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
+// Test cases for variables used outside JSX that should not trigger the rule
+const nonJsxUsageCases = [
+  createValidCase(`
+    const readyForSubmit = isValid && !isLoading;
+    if (readyForSubmit) {
+      console.log('Ready!');
+    }
+    return <div>Not used in JSX</div>;
+  `),
+  createValidCase(`
+    const ready = isLoaded && !isError;
+    return <div>Status: {ready.toString()}</div>;
+  `),
+  createValidCase(`
+    const hasItems = items && items.length > 0;
+    return <div className={hasItems ? 'with-items' : 'empty'}>Content</div>;
+  `),
+];
 
-    // Const variables with let/var alternatives
-    {
-      code: `
-        let isAvailable = inStock && !isReserved;
-        return <div>{isAvailable && <AddToCart />}</div>;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'isAvailable',
-            suggested: '_isAvailable',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
-    {
-      code: `
-        var shouldDisplay = isActive || isPending;
-        return <div>{shouldDisplay ? <StatusIcon /> : null}</div>;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'shouldDisplay',
-            suggested: '_shouldDisplay',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
+// Test cases for variables that are not derived (single identifier or literal)
+const nonDerivedVariableCases = [
+  createValidCase(`
+    const visible = someBoolean;
+    return <div>{visible && <span>Content</span>}</div>;
+  `),
+  createValidCase(`
+    const visible = true;
+    return <div>{visible && <span>Content</span>}</div>;
+  `),
+  createValidCase(`
+    const canEdit = checkPermissions();
+    return <div>{canEdit && <EditButton />}</div>;
+  `),
+];
 
-    // Variables used in custom conditional components
-    {
-      code: `
-        const isEligible = age >= 18 && hasLicense;
-        return <Conditional condition={isEligible}><DriveForm /></Conditional>;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'isEligible',
-            suggested: '_isEligible',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
+// Test cases for non-boolean expressions and inline JSX conditionals
+const nonBooleanAndInlineCases = [
+  createValidCase(`
+    const message = error || 'No error';
+    return <div>{message && <span>{message}</span>}</div>;
+  `),
+  createValidCase(`
+    return <div>{isLoading ? <Spinner /> : isError ? <Error /> : <Content />}</div>;
+  `),
+];
 
-    // Nested conditions within components
-    {
-      code: `
-        function Component() {
-          const showModal = isOpen && hasContent;
-          return (
-            <div>
-              {showModal && (
-                <Modal>
-                  <Content />
-                </Modal>
-              )}
-            </div>
-          );
-        }
-      `,
-      errors: [
-        {
-          data: {
-            name: 'showModal',
-            suggested: '_showModal',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
-
-    // Mixed expressions with comparison and logical operators
-    {
-      code: `
-        const hasValidData = data && data.length > 0 && !data.hasError;
-        return <div>{hasValidData ? <DataTable /> : <EmptyState />}</div>;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'hasValidData',
-            suggested: '_hasValidData',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
-
-    // Variables already starting with "is" but are derived and used conditionally
-    {
-      code: `
-        const isCompleteAndValid = isComplete && isValid;
-        return <div>{isCompleteAndValid && <SuccessMessage />}</div>;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'isCompleteAndValid',
-            suggested: '_isCompleteAndValid',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
-
-    // Variables with "has", "can", "should" prefixes that are derived
-    {
-      code: `
-        const canProceedNow = canProceed && !isBlocked;
-        return <div>{canProceedNow ? <ProceedButton /> : <BlockedMessage />}</div>;
-      `,
-      errors: [
-        {
-          data: {
-            name: 'canProceedNow',
-            suggested: '_canProceedNow',
-          },
-          messageId: 'derivedConditionalShouldStartWithUnderscore',
-        },
-      ],
-    },
+const TEST_CASES = {
+  invalid: [
+    ...basicLogicalExpressionCases,
+    ...complexLogicalExpressionCases,
+    ...negationAndComparisonCases,
+    ...multipleVariableCases,
+    ...componentTypeCases,
+    ...jsxConditionalPatternCases,
+    ...variableDeclarationTypeCases,
+    ...booleanPrefixDerivedCases,
   ],
-
   valid: [
-    // Simple boolean state/props with correct "is" prefix (should not trigger underscore rule)
-    {
-      code: `
-        const isVisible = true;
-        return <div>{isVisible && <span>Content</span>}</div>;
-      `,
-    },
-    {
-      code: `
-        const [isOpen, setIsOpen] = useState(false);
-        return <div>{isOpen ? <Modal /> : null}</div>;
-      `,
-    },
-
-    // Derived conditional variables with correct underscore prefix
-    {
-      code: `
-        const _isSubmitReady = isValid && !isLoading && hasData;
-        return <div>{_isSubmitReady && <button>Submit</button>}</div>;
-      `,
-    },
-    {
-      code: `
-        const _shouldShowError = hasError && !isLoading;
-        return <div>{_shouldShowError ? <ErrorMessage /> : null}</div>;
-      `,
-    },
-    {
-      code: `
-        const _canProceed = isAuthenticated && isVerified && !isBanned;
-        return <Conditional condition={_canProceed}><NextStep /></Conditional>;
-      `,
-    },
-
-    // Complex expressions with underscore prefix in different contexts
-    {
-      code: `
-        const _hasNoResults = !results || results.length === 0;
-        return <div>{_hasNoResults && <EmptyState />}</div>;
-      `,
-    },
-    {
-      code: `
-        const _isCompleteProfile = !!user.name && !!user.email && !!user.avatar;
-        return _isCompleteProfile ? <CompleteView /> : <IncompleteView />;
-      `,
-    },
-
-    // Arrow function components
-    {
-      code: `
-        const Component = () => {
-          const _showWarning = isExpired || hasIssues;
-          return <div>{_showWarning && <Warning />}</div>;
-        };
-      `,
-    },
-
-    // forwardRef components
-    {
-      code: `
-        const Component = forwardRef(() => {
-          const _isReady = isLoaded && !isError;
-          return <div>{_isReady && <Content />}</div>;
-        });
-      `,
-    },
-
-    // Variables used outside JSX (should not trigger rule)
-    {
-      code: `
-        const readyForSubmit = isValid && !isLoading;
-        if (readyForSubmit) {
-          console.log('Ready!');
-        }
-        return <div>Not used in JSX</div>;
-      `,
-    },
-
-    // Simple boolean variables not used in conditional rendering
-    {
-      code: `
-        const ready = isLoaded && !isError;
-        return <div>Status: {ready.toString()}</div>;
-      `,
-    },
-
-    // Variables that are not derived (single identifier or literal)
-    {
-      code: `
-        const visible = someBoolean;
-        return <div>{visible && <span>Content</span>}</div>;
-      `,
-    },
-    {
-      code: `
-        const visible = true;
-        return <div>{visible && <span>Content</span>}</div>;
-      `,
-    },
-
-    // Non-boolean expressions
-    {
-      code: `
-        const message = error || 'No error';
-        return <div>{message && <span>{message}</span>}</div>;
-      `,
-    },
-
-    // Function calls that return boolean
-    {
-      code: `
-        const canEdit = checkPermissions();
-        return <div>{canEdit && <EditButton />}</div>;
-      `,
-    },
-
-    // Ternary expressions in JSX without derived variables
-    {
-      code: `
-        return <div>{isLoading ? <Spinner /> : isError ? <Error /> : <Content />}</div>;
-      `,
-    },
-
-    // Variables used in non-conditional JSX contexts
-    {
-      code: `
-        const hasItems = items && items.length > 0;
-        return <div className={hasItems ? 'with-items' : 'empty'}>Content</div>;
-      `,
-    },
+    ...simpleBooleanStateCases,
+    ...correctUnderscorePrefixCases,
+    ...correctComponentTypeCases,
+    ...nonJsxUsageCases,
+    ...nonDerivedVariableCases,
+    ...nonBooleanAndInlineCases,
   ],
-});
+};
+
+const ruleTester = new RuleTester(PARSER_CONFIG);
+ruleTester.run('require-derived-conditional-prefix', requireDerivedConditionalPrefix, TEST_CASES);
