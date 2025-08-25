@@ -37,74 +37,38 @@ function createValidCase(code: string, options?: Array<{ allowedPrefixes: string
 
 // Test cases for basic boolean variables with default "is" prefix
 const basicBooleanVariableCases = [
-  createBooleanPrefixInvalidCase(
-    'const visible = true;',
-    'visible',
-    '"is"',
-    'isVisible'
-  ),
-  createBooleanPrefixInvalidCase(
-    'let disabled = false;',
-    'disabled',
-    '"is"',
-    'isDisabled'
-  ),
-  createBooleanPrefixInvalidCase(
-    'var loading = true;',
-    'loading',
-    '"is"',
-    'isLoading'
-  ),
+  createBooleanPrefixInvalidCase('const visible = true;', 'visible', '"is"', 'isVisible'),
+  createBooleanPrefixInvalidCase('let disabled = false;', 'disabled', '"is"', 'isDisabled'),
+  createBooleanPrefixInvalidCase('var loading = true;', 'loading', '"is"', 'isLoading'),
 ];
 
 // Test cases for custom single prefix configuration
 const customSinglePrefixCases = [
-  createBooleanPrefixInvalidCase(
-    'const visible = true;',
-    'visible',
-    '"has"',
-    'hasVisible',
-    [{ allowedPrefixes: ['has'] }]
-  ),
+  createBooleanPrefixInvalidCase('const visible = true;', 'visible', '"has"', 'hasVisible', [
+    { allowedPrefixes: ['has'] },
+  ]),
 ];
 
 // Test cases for custom multiple prefixes configuration
 const customMultiplePrefixesCases = [
-  createBooleanPrefixInvalidCase(
-    'const enabled = true;',
-    'enabled',
-    '"is", "has", or "should"',
-    'isEnabled',
-    [{ allowedPrefixes: ['is', 'has', 'should'] }]
-  ),
-  createBooleanPrefixInvalidCase(
-    'const VISIBLE = true;',
-    'VISIBLE',
-    '"can", or "should"',
-    'CAN_VISIBLE',
-    [{ allowedPrefixes: ['can', 'should'] }]
-  ),
+  createBooleanPrefixInvalidCase('const enabled = true;', 'enabled', '"is", "has", or "should"', 'isEnabled', [
+    { allowedPrefixes: ['is', 'has', 'should'] },
+  ]),
+  createBooleanPrefixInvalidCase('const VISIBLE = true;', 'VISIBLE', '"can", or "should"', 'CAN_VISIBLE', [
+    { allowedPrefixes: ['can', 'should'] },
+  ]),
 ];
 
 // Test cases for underscore-prefixed variables
 const underscorePrefixedVariableCases = [
-  createBooleanPrefixInvalidCase(
-    'const _enabled = true;',
-    '_enabled',
-    '"has"',
-    '_hasEnabled',
-    [{ allowedPrefixes: ['has'] }]
-  ),
+  createBooleanPrefixInvalidCase('const _enabled = true;', '_enabled', '"has"', '_hasEnabled', [
+    { allowedPrefixes: ['has'] },
+  ]),
 ];
 
 // Test cases for React useState hooks
 const reactUseStateCases = [
-  createBooleanPrefixInvalidCase(
-    'const [open, setOpen] = useState(false);',
-    'open',
-    '"is"',
-    'isOpen'
-  ),
+  createBooleanPrefixInvalidCase('const [open, setOpen] = useState(false);', 'open', '"is"', 'isOpen'),
   createBooleanPrefixInvalidCase(
     'const [visible, setVisible] = useState(true);',
     'visible',
@@ -232,12 +196,15 @@ const correctCustomMultiplePrefixesCases = [
 
 // Test cases for constants with correct custom prefixes
 const correctConstantPrefixCases = [
-  createValidCase(`
+  createValidCase(
+    `
         const CONFIG = {
           CAN_EDIT: true,
           SHOULD_VALIDATE: false,
         };
-      `, [{ allowedPrefixes: ['can', 'should'] }]),
+      `,
+    [{ allowedPrefixes: ['can', 'should'] }]
+  ),
 ];
 
 // Test cases for underscore variables with custom prefixes
@@ -254,21 +221,27 @@ const correctReactUseStateCases = [
 
 // Test cases for interface properties with correct custom prefixes
 const correctInterfacePropertyCases = [
-  createValidCase(`
+  createValidCase(
+    `
         interface ButtonProps {
           hasPermission: boolean;
           shouldDisable: boolean;
           onClick: () => void;
         }
-      `, [{ allowedPrefixes: ['has', 'should'] }]),
-  createValidCase(`
+      `,
+    [{ allowedPrefixes: ['has', 'should'] }]
+  ),
+  createValidCase(
+    `
         interface ComponentProps {
           title: string;
           wasActive: boolean;
           count: number;
           willUpdate: boolean;
         }
-      `, [{ allowedPrefixes: ['was', 'will'] }]),
+      `,
+    [{ allowedPrefixes: ['was', 'will'] }]
+  ),
 ];
 
 // Test cases for non-boolean variables that should be ignored
@@ -280,13 +253,16 @@ const nonBooleanVariableCases = [
 
 // Test cases for non-boolean interface properties
 const nonBooleanInterfaceCases = [
-  createValidCase(`
+  createValidCase(
+    `
         interface UserProps {
           name: string;
           age: number;
           status: 'active' | 'inactive';
         }
-      `, [{ allowedPrefixes: ['should'] }]),
+      `,
+    [{ allowedPrefixes: ['should'] }]
+  ),
 ];
 
 // Test cases for non-boolean useState
@@ -305,18 +281,22 @@ const correctDefaultConstantCases = [
           MAX_RETRIES: 3,
         };
       `),
-  createValidCase(`
+  createValidCase(
+    `
         const FLAGS = {
           CAN_EDIT: true,
           CAN_DELETE: false,
           SHOULD_VALIDATE: true,
         };
-      `, [{ allowedPrefixes: ['can', 'should'] }]),
+      `,
+    [{ allowedPrefixes: ['can', 'should'] }]
+  ),
 ];
 
 // Test cases for Zod schema methods that should be ignored
 const zodSchemaCases = [
-  createValidCase(`
+  createValidCase(
+    `
         const userSchema = z.object({
           name: z.string(),
           age: z.number(),
@@ -326,8 +306,11 @@ const zodSchemaCases = [
         const publicUserSchema = userSchema.omit({
           isActive: true,
         });
-      `, [{ allowedPrefixes: ['should'] }]),
-  createValidCase(`
+      `,
+    [{ allowedPrefixes: ['should'] }]
+  ),
+  createValidCase(
+    `
         const userSchema = z.object({
           name: z.string(),
           email: z.string(),
@@ -340,31 +323,42 @@ const zodSchemaCases = [
           email: true,
           createdAt: true,
         });
-      `, [{ allowedPrefixes: ['can'] }]),
+      `,
+    [{ allowedPrefixes: ['can'] }]
+  ),
 ];
 
 // Test cases for constructor calls and function parameters that should be ignored
 const ignoredContextCases = [
   createValidCase('const client = new Realtime({ disabled: true });', [{ allowedPrefixes: ['should'] }]),
-  createValidCase(`
+  createValidCase(
+    `
         function utilityFunction(enabled: boolean, disabled: boolean) {
           return enabled && !disabled;
         }
-      `, [{ allowedPrefixes: ['can'] }]),
+      `,
+    [{ allowedPrefixes: ['can'] }]
+  ),
   createValidCase('const loading = someFunction();', [{ allowedPrefixes: ['has'] }]),
-  createValidCase(`
+  createValidCase(
+    `
         function checkStatus(status: string): boolean {
           return status === 'active';
         }
-      `, [{ allowedPrefixes: ['should'] }]),
+      `,
+    [{ allowedPrefixes: ['should'] }]
+  ),
 ];
 
 // Test cases for complex expressions with correct custom prefixes
 const complexExpressionCases = [
-  createValidCase(`
+  createValidCase(
+    `
         const hasAccess = hasPermission && !hasRestriction;
         const shouldProceed = canContinue && willSuccess;
-      `, [{ allowedPrefixes: ['has', 'should', 'can', 'will'] }]),
+      `,
+    [{ allowedPrefixes: ['has', 'should', 'can', 'will'] }]
+  ),
 ];
 
 const TEST_CASES = {
