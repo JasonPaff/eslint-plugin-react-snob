@@ -10,9 +10,7 @@ const inlineStyleObjectCases = [
 ];
 
 // Test cases for style variables
-const styleVariableCases = [
-  createNoInlineStylesInvalidCase('<button style={buttonStyles}>Click me</button>'),
-];
+const styleVariableCases = [createNoInlineStylesInvalidCase('<button style={buttonStyles}>Click me</button>')];
 
 // Test cases for elements without style attributes
 const noStyleAttributeCases = [
@@ -21,19 +19,11 @@ const noStyleAttributeCases = [
 ];
 
 // Test cases for non-style attributes
-const nonStyleAttributeCases = [
-  createValidCase('<div data-style="something">Content</div>'),
-];
+const nonStyleAttributeCases = [createValidCase('<div data-style="something">Content</div>')];
 
 const TEST_CASES = {
-  invalid: [
-    ...inlineStyleObjectCases,
-    ...styleVariableCases,
-  ],
-  valid: [
-    ...noStyleAttributeCases,
-    ...nonStyleAttributeCases,
-  ],
+  invalid: [...inlineStyleObjectCases, ...styleVariableCases],
+  valid: [...noStyleAttributeCases, ...nonStyleAttributeCases],
 };
 
 const ruleTester = new RuleTester(PARSER_CONFIG);
