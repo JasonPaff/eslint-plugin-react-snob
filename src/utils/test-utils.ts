@@ -58,7 +58,7 @@ export function createBooleanPrefixInvalidCase(
   name: string,
   prefixes: string,
   suggested: string,
-  options?: [{ allowedPrefixes: string[] }]
+  options?: { allowedPrefixes: string[] }
 ) {
   return {
     code,
@@ -72,7 +72,7 @@ export function createBooleanPrefixInvalidCase(
         messageId: 'booleanShouldStartWithPrefix' as const,
       },
     ],
-    ...(options && { options }),
+    ...(options && { options: [options] }),
   };
 }
 
