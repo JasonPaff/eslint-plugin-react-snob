@@ -1,19 +1,7 @@
 import { RuleTester } from '@typescript-eslint/rule-tester';
 
 import { componentPropInterfaceNaming } from '../../src/rules/component-prop-interface-naming';
-
-const ruleTester = new RuleTester({
-  languageOptions: {
-    parser: require('@typescript-eslint/parser'),
-    parserOptions: {
-      ecmaFeatures: {
-        jsx: true,
-      },
-      ecmaVersion: 2020,
-      sourceType: 'module',
-    },
-  },
-});
+import { createValidCase, createComponentPropInterfaceNamingInvalidCase, PARSER_CONFIG } from '../../src/utils/test-utils';
 
 // Test cases for basic function components with incorrectly named props interfaces
 const basicFunctionComponentCases = [
