@@ -58,7 +58,7 @@ export function createBooleanPrefixInvalidCase(
   name: string,
   prefixes: string,
   suggested: string,
-  options?: Array<{ allowedPrefixes: string[] }>
+  options?: [{ allowedPrefixes: string[] }]
 ) {
   return {
     code,

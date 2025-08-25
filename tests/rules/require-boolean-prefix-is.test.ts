@@ -9,7 +9,7 @@ function createBooleanPrefixInvalidCase(
   name: string,
   prefixes: string,
   suggested: string,
-  options?: Array<{ allowedPrefixes: string[] }>
+  options?: [{ allowedPrefixes: string[] }]
 ) {
   return {
     code,
@@ -28,7 +28,7 @@ function createBooleanPrefixInvalidCase(
 }
 
 // Helper function to create valid test cases
-function createValidCase(code: string, options?: Array<{ allowedPrefixes: string[] }>) {
+function createValidCase(code: string, options?: [{ allowedPrefixes: string[] }]) {
   return {
     code,
     ...(options && { options }),
