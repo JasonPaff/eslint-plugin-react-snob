@@ -384,5 +384,46 @@ ruleTester.run('no-complex-jsx-conditions', noComplexJsxConditions, {
         return <div>{user && <Greeting message={message} />}</div>;
       `,
     },
+    // Conditions in CSS class names or className utility functions
+    {
+      code: `
+        return <Button className={cn(isInvalid && 'text-red-500')} />;
+      `,
+    },
+    {
+      code: `
+        return <Button className={cn(size === 'right' && 'text-left')} />;
+      `,
+    },
+    {
+      code: `
+        return <Button className={cva(size === 'right' && 'text-left')} />;
+      `,
+    },
+    {
+      code: `
+        return <Button className={clsx(size === 'right' && 'text-left')} />;
+      `,
+    },
+    {
+      code: `
+        return <Button className={cx(size === 'right' && 'text-left')} />;
+      `,
+    },
+    {
+      code: `
+        return <Button className={cn( { 'text-left' : size === 'right'})} />;
+      `,
+    },
+    {
+      code: `
+        return <Button className={cn([size === 'left' && 'text-left'), 'font-bold'])} />;
+      `,
+    },
+    {
+      code: `
+        return <Button className={cn(size === 'left' ? 'text-left' : 'font-bold')} />;
+      `,
+    },
   ],
 });
