@@ -36,6 +36,16 @@ export function createNoInlineStylesInvalidCase(code: string) {
   };
 }
 
+// Helper function to create invalid test cases for no-complex-jsx-conditions rule
+export function createComplexConditionInvalidCase(code: string, errorCount: number = 1) {
+  return {
+    code,
+    errors: Array(errorCount).fill({
+      messageId: 'complexCondition' as const,
+    }),
+  };
+}
+
 // Helper function to create valid test cases
 export function createValidCase(code: string) {
   return { code };
