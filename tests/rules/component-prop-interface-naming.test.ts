@@ -15,68 +15,20 @@ const ruleTester = new RuleTester({
   },
 });
 
-ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, {
-  invalid: [
-    // Function component with incorrectly named props interface
-    {
-      code: `
+// Test cases for basic function components with incorrectly named props interfaces
+const basicFunctionComponentCases = [
+  createComponentPropInterfaceNamingInvalidCase(
+    `
        function Card({ className, ...props }: React.ComponentProps<'div'>) {
            return (<div>...</div>);
        }
       `,
-      errors: [
-        {
-          data: {
-            actual: "React.ComponentProps<'div'>",
-            component: 'Card',
-            expected: 'CardProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Arrow component with incorrectly named props interface
-    {
-      code: `
-       const Card = ({ className, ...props }: React.ComponentProps<'div'>) => {
-           return (<div>...</div>);
-       }
-      `,
-      errors: [
-        {
-          data: {
-            actual: "React.ComponentProps<'div'>",
-            component: 'Card',
-            expected: 'CardProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Arrow Function component with incorrectly named props interface
-    {
-      code: `
-       const Card = function ({ className, ...props }: React.ComponentProps<'div'>) {
-           return (<div>...</div>);
-       }
-      `,
-      errors: [
-        {
-          data: {
-            actual: "React.ComponentProps<'div'>",
-            component: 'Card',
-            expected: 'CardProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Function component with incorrectly named props interface
-    {
-      code: `
+    "React.ComponentProps<'div'>",
+    'Card',
+    'CardProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
         interface ButtonOptions {
           onClick: () => void;
         }
@@ -84,21 +36,67 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
           return <button onClick={onClick}>Click me</button>;
         }
       `,
-      errors: [
-        {
-          data: {
-            actual: 'ButtonOptions',
-            component: 'Button',
-            expected: 'ButtonProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
+    'ButtonOptions',
+    'Button',
+    'ButtonProps'
+  ),
+];
 
-    // Arrow function component with props declaration as a generic on the function type
-    {
-      code: `
+// Test cases for arrow function components with incorrectly named props interfaces
+const arrowFunctionComponentCases = [
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+       const Card = ({ className, ...props }: React.ComponentProps<'div'>) => {
+           return (<div>...</div>);
+       }
+      `,
+    "React.ComponentProps<'div'>",
+    'Card',
+    'CardProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+       const Card = function ({ className, ...props }: React.ComponentProps<'div'>) {
+           return (<div>...</div>);
+       }
+      `,
+    "React.ComponentProps<'div'>",
+    'Card',
+    'CardProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+        interface CardData {
+          title: string;
+          content: string;
+        }
+        const Card = ({ title, content }: CardData) => {
+          return <div><h3>{title}</h3><p>{content}</p></div>;
+        };
+      `,
+    'CardData',
+    'Card',
+    'CardProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+        interface HeaderData {
+          title: string;
+        }
+        const Header = function({ title }: HeaderData) {
+          return <h1>{title}</h1>;
+        };
+      `,
+    'HeaderData',
+    'Header',
+    'HeaderProps'
+  ),
+];
+
+// Test cases for components with generic type declarations
+const genericTypeComponentCases = [
+  createComponentPropInterfaceNamingInvalidCase(
+    `
     import { FunctionComponent } from 'react';
 
     interface DogPenOptions {
@@ -110,155 +108,12 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
       return <></>;
     };
   `,
-      errors: [
-        {
-          data: {
-            actual: 'DogPenOptions',
-            component: 'DogPenFunctionComponent',
-            expected: 'DogPenFunctionComponentProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Arrow function component with incorrectly named props interface
-    {
-      code: `
-        interface CardData {
-          title: string;
-          content: string;
-        }
-        const Card = ({ title, content }: CardData) => {
-          return <div><h3>{title}</h3><p>{content}</p></div>;
-        };
-      `,
-      errors: [
-        {
-          data: {
-            actual: 'CardData',
-            component: 'Card',
-            expected: 'CardProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // forwardRef with incorrectly named props interface (generic type)
-    {
-      code: `
-        interface InputConfig {
-          placeholder: string;
-        }
-        const Input = forwardRef<HTMLInputElement, InputConfig>(({ placeholder }, ref) => {
-          return <input ref={ref} placeholder={placeholder} />;
-        });
-      `,
-      errors: [
-        {
-          data: {
-            actual: 'InputConfig',
-            component: 'Input',
-            expected: 'InputProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // memo wrapped component with incorrect naming
-    {
-      code: `
-        interface MemoSettings {
-          value: string;
-        }
-        const MemoComponent = memo(({ value }: MemoSettings) => {
-          return <div>{value}</div>;
-        });
-      `,
-      errors: [
-        {
-          data: {
-            actual: 'MemoSettings',
-            component: 'MemoComponent',
-            expected: 'MemoComponentProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Complex component name with incorrect interface naming
-    {
-      code: `
-        interface FileDrawerSettings {
-          isOpen: boolean;
-          onClose: () => void;
-        }
-        function FileDrawer({ isOpen, onClose }: FileDrawerSettings) {
-          return isOpen ? <div onClick={onClose}>Drawer</div> : null;
-        }
-      `,
-      errors: [
-        {
-          data: {
-            actual: 'FileDrawerSettings',
-            component: 'FileDrawer',
-            expected: 'FileDrawerProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Component with Props suffix but wrong base name
-    {
-      code: `
-        interface ComponentProps {
-          value: string;
-        }
-        function MyButton({ value }: ComponentProps) {
-          return <button>{value}</button>;
-        }
-      `,
-      errors: [
-        {
-          data: {
-            actual: 'ComponentProps',
-            component: 'MyButton',
-            expected: 'MyButtonProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Arrow function with function expression syntax
-    {
-      code: `
-        interface HeaderData {
-          title: string;
-        }
-        const Header = function({ title }: HeaderData) {
-          return <h1>{title}</h1>;
-        };
-      `,
-      errors: [
-        {
-          data: {
-            actual: 'HeaderData',
-            component: 'Header',
-            expected: 'HeaderProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Arrow function component with generic type declaration as function type generic
-    {
-      code: `
+    'DogPenOptions',
+    'DogPenFunctionComponent',
+    'DogPenFunctionComponentProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
         type ArrowFunctionComponentPassedAsFirstGenericOptions<T> = T & {
           name: string;
         };
@@ -270,21 +125,12 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
           return <></>;
         };
       `,
-      errors: [
-        {
-          data: {
-            actual: 'ArrowFunctionComponentPassedAsFirstGenericOptions',
-            component: 'ArrowFunctionComponentPassedAsFirstGeneric',
-            expected: 'ArrowFunctionComponentPassedAsFirstGenericProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Arrow function component with generic type declaration as parameter type
-    {
-      code: `
+    'ArrowFunctionComponentPassedAsFirstGenericOptions',
+    'ArrowFunctionComponentPassedAsFirstGeneric',
+    'ArrowFunctionComponentPassedAsFirstGenericProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
         type ArrowFunctionComponentPassedAsFirstGenericOptions<T> = T & {
           name: string;
         };
@@ -294,21 +140,12 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
           return <></>;
         };
       `,
-      errors: [
-        {
-          data: {
-            actual: 'ArrowFunctionComponentPassedAsFirstGenericOptions',
-            component: 'ArrowFunctionComponentPassedAsFirstGeneric',
-            expected: 'ArrowFunctionComponentPassedAsFirstGenericProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Arrow function component with props type passed as last generic parameter
-    {
-      code: `
+    'ArrowFunctionComponentPassedAsFirstGenericOptions',
+    'ArrowFunctionComponentPassedAsFirstGeneric',
+    'ArrowFunctionComponentPassedAsFirstGenericProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
         type ArrowFunctionComponentPassedAsLastGenericOptions = {
           name: string;
         };
@@ -320,131 +157,12 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
           return <></>;
         };
       `,
-      errors: [
-        {
-          data: {
-            actual: 'ArrowFunctionComponentPassedAsLastGenericOptions',
-            component: 'ArrowFunctionComponentPassedAsLastGeneric',
-            expected: 'ArrowFunctionComponentPassedAsLastGenericProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Type alias instead of interface with incorrect naming
-    {
-      code: `
-        type ButtonOptions = {
-          onClick: () => void;
-        }
-        function Button({ onClick }: ButtonOptions) {
-          return <button onClick={onClick}>Click me</button>;
-        }
-      `,
-      errors: [
-        {
-          data: {
-            actual: 'ButtonOptions',
-            component: 'Button',
-            expected: 'ButtonProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Component ending in "Component" with wrong base name
-    {
-      code: `
-        interface UserOptions {
-          id: number;
-        }
-        function UserComponent({ id }: UserOptions) {
-          return <div>User {id}</div>;
-        }
-      `,
-      errors: [
-        {
-          data: {
-            actual: 'UserOptions',
-            component: 'UserComponent',
-            expected: 'UserComponentProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Exported function component with incorrect naming
-    {
-      code: `
-        interface ButtonConfig {
-          label: string;
-        }
-        export function Button({ label }: ButtonConfig) {
-          return <button>{label}</button>;
-        }
-      `,
-      errors: [
-        {
-          data: {
-            actual: 'ButtonConfig',
-            component: 'Button',
-            expected: 'ButtonProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Default exported component with incorrect naming
-    {
-      code: `
-        interface HeaderData {
-          title: string;
-        }
-        export default function Header({ title }: HeaderData) {
-          return <h1>{title}</h1>;
-        }
-      `,
-      errors: [
-        {
-          data: {
-            actual: 'HeaderData',
-            component: 'Header',
-            expected: 'HeaderProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // forwardRef with multiple type parameters and incorrect naming
-    {
-      code: `
-        interface CustomInputSettings {
-          value: string;
-        }
-        const CustomInput = forwardRef<HTMLInputElement, CustomInputSettings>(
-          ({ value }, ref) => <input ref={ref} value={value} />
-        );
-      `,
-      errors: [
-        {
-          data: {
-            actual: 'CustomInputSettings',
-            component: 'CustomInput',
-            expected: 'CustomInputProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Type alias with generic parameters and incorrect naming
-    {
-      code: `
+    'ArrowFunctionComponentPassedAsLastGenericOptions',
+    'ArrowFunctionComponentPassedAsLastGeneric',
+    'ArrowFunctionComponentPassedAsLastGenericProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
         type ButtonConfig<T> = {
           onClick: () => void;
           data: T;
@@ -453,43 +171,55 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
           return <button onClick={onClick}>Click me</button>;
         }
       `,
-      errors: [
-        {
-          data: {
-            actual: 'ButtonConfig',
-            component: 'Button',
-            expected: 'ButtonProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
+    'ButtonConfig',
+    'Button',
+    'ButtonProps'
+  ),
+];
 
-    // Component with Props suffix but completely unrelated name
-    {
-      code: `
-        interface RandomProps {
+// Test cases for forwardRef and memo wrapped components
+const wrappedComponentCases = [
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+        interface InputConfig {
+          placeholder: string;
+        }
+        const Input = forwardRef<HTMLInputElement, InputConfig>(({ placeholder }, ref) => {
+          return <input ref={ref} placeholder={placeholder} />;
+        });
+      `,
+    'InputConfig',
+    'Input',
+    'InputProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+        interface MemoSettings {
           value: string;
         }
-        function SpecificButton({ value }: RandomProps) {
-          return <button>{value}</button>;
-        }
+        const MemoComponent = memo(({ value }: MemoSettings) => {
+          return <div>{value}</div>;
+        });
       `,
-      errors: [
-        {
-          data: {
-            actual: 'RandomProps',
-            component: 'SpecificButton',
-            expected: 'SpecificButtonProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-
-    // Nested forwardRef with memo and incorrect naming
-    {
-      code: `
+    'MemoSettings',
+    'MemoComponent',
+    'MemoComponentProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+        interface CustomInputSettings {
+          value: string;
+        }
+        const CustomInput = forwardRef<HTMLInputElement, CustomInputSettings>(
+          ({ value }, ref) => <input ref={ref} value={value} />
+        );
+      `,
+    'CustomInputSettings',
+    'CustomInput',
+    'CustomInputProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
         interface InputSettings {
           placeholder: string;
         }
@@ -497,35 +227,127 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
           ({ placeholder }, ref) => <input ref={ref} placeholder={placeholder} />
         ));
       `,
-      errors: [
-        {
-          data: {
-            actual: 'InputSettings',
-            component: 'Input',
-            expected: 'InputProps',
-          },
-          messageId: 'incorrectPropsInterfaceName',
-        },
-      ],
-    },
-  ],
+    'InputSettings',
+    'Input',
+    'InputProps'
+  ),
+];
 
-  valid: [
-    // Function component with correctly named props interface
-    {
-      code: `
+// Test cases for type aliases instead of interfaces
+const typeAliasCases = [
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+        type ButtonOptions = {
+          onClick: () => void;
+        }
+        function Button({ onClick }: ButtonOptions) {
+          return <button onClick={onClick}>Click me</button>;
+        }
+      `,
+    'ButtonOptions',
+    'Button',
+    'ButtonProps'
+  ),
+];
+
+// Test cases for components with Props suffix but wrong base name
+const wrongPropsSuffixCases = [
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+        interface ComponentProps {
+          value: string;
+        }
+        function MyButton({ value }: ComponentProps) {
+          return <button>{value}</button>;
+        }
+      `,
+    'ComponentProps',
+    'MyButton',
+    'MyButtonProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+        interface RandomProps {
+          value: string;
+        }
+        function SpecificButton({ value }: RandomProps) {
+          return <button>{value}</button>;
+        }
+      `,
+    'RandomProps',
+    'SpecificButton',
+    'SpecificButtonProps'
+  ),
+];
+
+// Test cases for exported components
+const exportedComponentCases = [
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+        interface FileDrawerSettings {
+          isOpen: boolean;
+          onClose: () => void;
+        }
+        function FileDrawer({ isOpen, onClose }: FileDrawerSettings) {
+          return isOpen ? <div onClick={onClose}>Drawer</div> : null;
+        }
+      `,
+    'FileDrawerSettings',
+    'FileDrawer',
+    'FileDrawerProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+        interface UserOptions {
+          id: number;
+        }
+        function UserComponent({ id }: UserOptions) {
+          return <div>User {id}</div>;
+        }
+      `,
+    'UserOptions',
+    'UserComponent',
+    'UserComponentProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+        interface ButtonConfig {
+          label: string;
+        }
+        export function Button({ label }: ButtonConfig) {
+          return <button>{label}</button>;
+        }
+      `,
+    'ButtonConfig',
+    'Button',
+    'ButtonProps'
+  ),
+  createComponentPropInterfaceNamingInvalidCase(
+    `
+        interface HeaderData {
+          title: string;
+        }
+        export default function Header({ title }: HeaderData) {
+          return <h1>{title}</h1>;
+        }
+      `,
+    'HeaderData',
+    'Header',
+    'HeaderProps'
+  ),
+];
+
+// Test cases for components with correctly named props interfaces
+const correctlyNamedCases = [
+  createValidCase(`
         interface ButtonProps {
           onClick: () => void;
         }
         function Button({ onClick }: ButtonProps) {
           return <button onClick={onClick}>Click me</button>;
         }
-      `,
-    },
-
-    // Arrow function component with props declaration as a generic on the function type
-    {
-      code: `
+      `),
+  createValidCase(`
     import { FunctionComponent } from 'react';
 
     interface DogPenProps {
@@ -536,12 +358,8 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
       console.log(name);
       return <></>;
     };
-  `,
-    },
-
-    // Arrow function component with correctly named props interface
-    {
-      code: `
+  `),
+  createValidCase(`
         interface CardProps {
           title: string;
           content: string;
@@ -549,84 +367,24 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         const Card = ({ title, content }: CardProps) => {
           return <div><h3>{title}</h3><p>{content}</p></div>;
         };
-      `,
-    },
-
-    // forwardRef with correctly named props interface
-    {
-      code: `
+      `),
+  createValidCase(`
         interface InputProps {
           placeholder: string;
         }
         const Input = forwardRef<HTMLInputElement, InputProps>(({ placeholder }, ref) => {
           return <input ref={ref} placeholder={placeholder} />;
         });
-      `,
-    },
-
-    // Component with no props (should be ignored)
-    {
-      code: `
-        function SimpleComponent() {
-          return <div>No props</div>;
-        }
-      `,
-    },
-
-    // Arrow function component with no props (should be ignored)
-    {
-      code: `
-        const SimpleArrowComponent = () => {
-          return <div>No props</div>;
-        };
-      `,
-    },
-
-    // Non-component function (should be ignored)
-    {
-      code: `
-        interface UtilOptions {
-          debug: boolean;
-        }
-        function utilFunction({ debug }: UtilOptions) {
-          return debug;
-        }
-      `,
-    },
-
-    // Component with destructured props but no type annotation (should be ignored)
-    {
-      code: `
-        function ComponentWithoutTypes({ title }) {
-          return <div>{title}</div>;
-        }
-      `,
-    },
-
-    // Component with inline type annotation (should be ignored as it's not an interface)
-    {
-      code: `
-        function Button({ onClick }: { onClick: () => void }) {
-          return <button onClick={onClick}>Click me</button>;
-        }
-      `,
-    },
-
-    // memo wrapped component with correct naming
-    {
-      code: `
+      `),
+  createValidCase(`
         interface MemoComponentProps {
           value: string;
         }
         const MemoComponent = memo(({ value }: MemoComponentProps) => {
           return <div>{value}</div>;
         });
-      `,
-    },
-
-    // Arrow function component with generic type declaration as function type generic (correct naming)
-    {
-      code: `
+      `),
+  createValidCase(`
         type ArrowFunctionComponentPassedAsFirstGenericProps<T> = T & {
           name: string;
         };
@@ -637,12 +395,8 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
           console.log(name);
           return <></>;
         };
-      `,
-    },
-
-    // Arrow function component with generic type declaration as parameter type (correct naming)
-    {
-      code: `
+      `),
+  createValidCase(`
         type ArrowFunctionComponentPassedAsFirstGenericProps<T> = T & {
           name: string;
         };
@@ -651,12 +405,8 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
           console.log(name);
           return <></>;
         };
-      `,
-    },
-
-    // Arrow function component with props type passed as last generic parameter (correct naming)
-    {
-      code: `
+      `),
+  createValidCase(`
         type ArrowFunctionComponentPassedAsLastGenericProps = {
           name: string;
         };
@@ -667,84 +417,92 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
           console.log(name);
           return <></>;
         };
-      `,
-    },
-
-    // Type alias with correct naming
-    {
-      code: `
+      `),
+  createValidCase(`
         type ButtonProps = {
           onClick: () => void;
         }
         function Button({ onClick }: ButtonProps) {
           return <button onClick={onClick}>Click me</button>;
         }
-      `,
-    },
-
-    // Component ending in "Component" with correct base name
-    {
-      code: `
+      `),
+  createValidCase(`
         interface UserProps {
           id: number;
         }
         function UserComponent({ id }: UserProps) {
           return <div>User {id}</div>;
         }
-      `,
-    },
-
-    // Exported component with correct naming
-    {
-      code: `
+      `),
+  createValidCase(`
         interface ButtonProps {
           label: string;
         }
         export function Button({ label }: ButtonProps) {
           return <button>{label}</button>;
         }
-      `,
-    },
-
-    // Default exported component with correct naming
-    {
-      code: `
+      `),
+  createValidCase(`
         interface HeaderProps {
           title: string;
         }
         export default function Header({ title }: HeaderProps) {
           return <h1>{title}</h1>;
         }
-      `,
-    },
+      `),
+];
 
-    // Component with union types in props
-    {
-      code: `
+// Test cases for components that should be ignored by the rule
+const ignoredComponentCases = [
+  createValidCase(`
+        function SimpleComponent() {
+          return <div>No props</div>;
+        }
+      `),
+  createValidCase(`
+        const SimpleArrowComponent = () => {
+          return <div>No props</div>;
+        };
+      `),
+  createValidCase(`
+        interface UtilOptions {
+          debug: boolean;
+        }
+        function utilFunction({ debug }: UtilOptions) {
+          return debug;
+        }
+      `),
+  createValidCase(`
+        function ComponentWithoutTypes({ title }) {
+          return <div>{title}</div>;
+        }
+      `),
+  createValidCase(`
+        function Button({ onClick }: { onClick: () => void }) {
+          return <button onClick={onClick}>Click me</button>;
+        }
+      `),
+];
+
+// Test cases for complex component scenarios
+const complexComponentCases = [
+  createValidCase(`
         interface ButtonProps {
           variant: 'primary' | 'secondary';
         }
         function Button({ variant }: ButtonProps) {
           return <button className={variant}>Click me</button>;
         }
-      `,
-    },
-
-    // Component with generic props interface
-    {
-      code: `
+      `),
+  createValidCase(`
         interface ListProps<T> {
           items: T[];
         }
         function List<T>({ items }: ListProps<T>) {
           return <ul>{items.map(item => <li key={String(item)}>{String(item)}</li>)}</ul>;
         }
-      `,
-    },
-
-    // Component with intersection types
-    {
-      code: `
+      `),
+  createValidCase(`
         interface BaseProps {
           id: string;
         }
@@ -754,12 +512,8 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         function Button({ id, onClick }: ButtonProps) {
           return <button id={id} onClick={onClick}>Click me</button>;
         }
-      `,
-    },
-
-    // Component with complex nested props
-    {
-      code: `
+      `),
+  createValidCase(`
         interface ModalProps {
           isOpen: boolean;
           onClose: () => void;
@@ -768,12 +522,8 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         function Modal({ isOpen, onClose, children }: ModalProps) {
           return isOpen ? <div onClick={onClose}>{children}</div> : null;
         }
-      `,
-    },
-
-    // Arrow function with correct type alias naming
-    {
-      code: `
+      `),
+  createValidCase(`
         type CardProps = {
           title: string;
           description: string;
@@ -784,24 +534,16 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
             <p>{description}</p>
           </div>
         );
-      `,
-    },
-
-    // Component with Props suffix that matches exactly (edge case)
-    {
-      code: `
+      `),
+  createValidCase(`
         interface PropsProps {
           value: string;
         }
         function Props({ value }: PropsProps) {
           return <div>{value}</div>;
         }
-      `,
-    },
-
-    // Generic type alias with correct naming
-    {
-      code: `
+      `),
+  createValidCase(`
         type ListProps<T> = {
           items: T[];
           onSelect: (item: T) => void;
@@ -809,31 +551,41 @@ ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, 
         function List<T>({ items, onSelect }: ListProps<T>) {
           return <ul>{items.map(item => <li onClick={() => onSelect(item)}>{String(item)}</li>)}</ul>;
         }
-      `,
-    },
-
-    // Complex component name with numbers
-    {
-      code: `
+      `),
+  createValidCase(`
         interface Button2Props {
           label: string;
         }
         function Button2({ label }: Button2Props) {
           return <button>{label}</button>;
         }
-      `,
-    },
-
-    // Nested forwardRef with memo and correct naming
-    {
-      code: `
+      `),
+  createValidCase(`
         interface InputProps {
           placeholder: string;
         }
         const Input = memo(forwardRef<HTMLInputElement, InputProps>(
           ({ placeholder }, ref) => <input ref={ref} placeholder={placeholder} />
         ));
-      `,
-    },
+      `),
+];
+
+const TEST_CASES = {
+  invalid: [
+    ...basicFunctionComponentCases,
+    ...arrowFunctionComponentCases,
+    ...genericTypeComponentCases,
+    ...wrappedComponentCases,
+    ...typeAliasCases,
+    ...wrongPropsSuffixCases,
+    ...exportedComponentCases,
   ],
-});
+  valid: [
+    ...correctlyNamedCases,
+    ...ignoredComponentCases,
+    ...complexComponentCases,
+  ],
+};
+
+const ruleTester = new RuleTester(PARSER_CONFIG);
+ruleTester.run('component-prop-interface-naming', componentPropInterfaceNaming, TEST_CASES);

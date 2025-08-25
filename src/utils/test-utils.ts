@@ -62,6 +62,23 @@ export function createComplexConditionInvalidCase(code: string, errorCount: numb
   };
 }
 
+// Helper function to create invalid test cases for component-prop-interface-naming rule
+export function createComponentPropInterfaceNamingInvalidCase(code: string, actual: string, component: string, expected: string) {
+  return {
+    code,
+    errors: [
+      {
+        data: {
+          actual,
+          component,
+          expected,
+        },
+        messageId: 'incorrectPropsInterfaceName' as const,
+      },
+    ],
+  };
+}
+
 // Helper function to create valid test cases
 export function createValidCase(code: string) {
   return { code };
