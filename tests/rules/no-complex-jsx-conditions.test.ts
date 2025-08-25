@@ -417,12 +417,23 @@ ruleTester.run('no-complex-jsx-conditions', noComplexJsxConditions, {
     },
     {
       code: `
-        return <Button className={cn([size === 'left' && 'text-left'), 'font-bold'])} />;
+        return <Button className={cn([size === 'left' && 'text-left'], 'font-bold')} />;
       `,
     },
     {
       code: `
         return <Button className={cn(size === 'left' ? 'text-left' : 'font-bold')} />;
+      `,
+    },
+    {
+      code: `
+       <Content
+        className={cn(
+          'fixed z-50 flex',
+          side === 'right' && 'inset-y-0 right-0',
+          className,
+        )}
+      >
       `,
     },
   ],
