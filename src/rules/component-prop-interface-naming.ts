@@ -1,6 +1,6 @@
 import { TSESTree } from '@typescript-eslint/utils';
 
-import { createRule, extractComponentName, isComponentFunction, findInterfaceNamesInTypeReference, getQualifiedTypeName, getFullTypeSignature } from '../utils';
+import { createRule, extractComponentName, isComponentFunction, findInterfaceNamesInTypeReference, getFullTypeSignature } from '../utils';
 
 export const componentPropInterfaceNaming = createRule({
   create(context) {

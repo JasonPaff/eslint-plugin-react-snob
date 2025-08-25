@@ -10,6 +10,10 @@ The utilities are organized into specialized modules:
 - **`component-utils.ts`**: React component detection and analysis
 - **`ast-traversal.ts`**: AST traversal and expression analysis
 - **`typescript-utils.ts`**: TypeScript-specific AST utilities
+- **`jsx-utils.ts`**: JSX and context detection utilities
+- **`naming-utils.ts`**: Naming convention utilities
+- **`boolean-utils.ts`**: Boolean type and expression utilities
+- **`event-handler-utils.ts`**: Event handler naming and detection utilities
 - **`index.ts`**: Central export point for all utilities
 
 ## Usage
@@ -241,6 +245,171 @@ When updating existing rules to use shared utilities:
 - **AST traversal utilities**: Designed for efficiency but use judiciously on large expressions
 - **Caching**: Utilities don't implement internal caching; cache results in rules if needed
 - **Early returns**: Most utilities use early returns to minimize computation
+
+## JSX and Context Detection Utilities
+
+### `containsJSX(node: TSESTree.Node, visited?: Set<TSESTree.Node>): boolean`
+
+**File**: `jsx-utils.ts`  
+**Purpose**: Checks if a node contains JSX elements, with cycle detection
+
+```typescript
+import { containsJSX } from '../utils';
+
+if (containsJSX(expression.right)) {
+  // Expression contains JSX elements
+}
+```
+
+### `isInZodOmitOrPickMethod(node: TSESTree.Node): boolean`
+
+**File**: `jsx-utils.ts`  
+**Purpose**: Checks if a property is inside a Zod .omit() or .pick() method call
+
+```typescript
+import { isInZodOmitOrPickMethod } from '../utils';
+
+if (isInZodOmitOrPickMethod(node)) {
+  return; // Skip validation for Zod utility calls
+}
+```
+
+### `isInConstructorCall(node: TSESTree.Node): boolean`
+
+**File**: `jsx-utils.ts`  
+**Purpose**: Checks if a property is inside a constructor call (new Something(...))
+
+## Naming Convention Utilities
+
+### `suggestUnderscorePrefix(name: string): string`
+
+**File**: `naming-utils.ts`  
+**Purpose**: Converts a variable name to its suggested underscore prefixed version
+
+```typescript
+import { suggestUnderscorePrefix } from '../utils';
+
+const suggestion = suggestUnderscorePrefix('isLoading'); // "_isLoading"
+```
+
+### `hasUnderscorePrefix(name: string): boolean`
+
+**File**: `naming-utils.ts`  
+**Purpose**: Checks if a name already starts with underscore
+
+### `suggestPrefixedName(name: string, allowedPrefixes: string[]): string`
+
+**File**: `naming-utils.ts`  
+**Purpose**: Converts a variable name to its suggested prefixed version based on allowed prefixes
+
+```typescript
+import { suggestPrefixedName } from '../utils';
+
+const suggestion = suggestPrefixedName('loading', ['is', 'has']); // "isLoading"
+```
+
+### `hasValidPrefix(name: string, prefix: string): boolean`
+
+**File**: `naming-utils.ts`  
+**Purpose**: Checks if a name already starts with a valid prefix (including underscore prefix)
+
+### `hasAnyValidPrefix(name: string, allowedPrefixes: string[]): boolean`
+
+**File**: `naming-utils.ts`  
+**Purpose**: Checks if a name starts with any of the allowed prefixes
+
+## Boolean Type and Expression Utilities
+
+### `isBooleanType(typeAnnotation?: TSESTree.TSTypeAnnotation): boolean`
+
+**File**: `boolean-utils.ts`  
+**Purpose**: Checks if a type annotation is boolean or includes boolean
+
+```typescript
+import { isBooleanType } from '../utils';
+
+if (isBooleanType(node.typeAnnotation)) {
+  // This parameter has boolean type
+}
+```
+
+### `isBooleanLiteral(node?: TSESTree.Expression): boolean`
+
+**File**: `boolean-utils.ts`  
+**Purpose**: Checks if a literal value is boolean
+
+### `isBooleanExpression(node: TSESTree.Expression): boolean`
+
+**File**: `boolean-utils.ts`  
+**Purpose**: Checks if an expression is likely to return a boolean value
+
+### `isLikelyBooleanExpression(node: TSESTree.Expression): boolean`
+
+**File**: `boolean-utils.ts`  
+**Purpose**: Checks if an expression is likely to produce a boolean value (more comprehensive)
+
+### `isDerivedBooleanExpression(node: TSESTree.Expression): boolean`
+
+**File**: `boolean-utils.ts`  
+**Purpose**: Checks if an expression is a derived boolean expression that should require underscore prefix
+
+### `isUseStateWithBoolean(node: TSESTree.CallExpression): boolean`
+
+**File**: `boolean-utils.ts`  
+**Purpose**: Checks if a CallExpression is a useState call with a boolean initial value
+
+## Event Handler Utilities
+
+### `eventHandlerAttributes: Set<string>`
+
+**File**: `event-handler-utils.ts`  
+**Purpose**: Set of common React event handler attribute names (onClick, onChange, etc.)
+
+### `extractEventFromHandlerName(handlerName: string): string`
+
+**File**: `event-handler-utils.ts`  
+**Purpose**: Extracts the event name from a handler name by removing common prefixes/suffixes
+
+```typescript
+import { extractEventFromHandlerName } from '../utils';
+
+const eventName = extractEventFromHandlerName('handleSubmit'); // "submit"
+```
+
+### `generateHandleEventName(eventName: string): string`
+
+**File**: `event-handler-utils.ts`  
+**Purpose**: Generates a properly formatted "handle" prefixed event handler name
+
+### `generateOnEventName(eventName: string): string`
+
+**File**: `event-handler-utils.ts`  
+**Purpose**: Generates a properly formatted "on" prefixed event handler prop name
+
+### `isEventHandlerName(name: string): boolean`
+
+**File**: `event-handler-utils.ts`  
+**Purpose**: Checks if a name looks like an event handler based on common patterns
+
+### `isEventHandlerParameter(param: TSESTree.Parameter): boolean`
+
+**File**: `event-handler-utils.ts`  
+**Purpose**: Checks if a parameter looks like an event parameter (e, event, evt)
+
+### `hasEventHandlerParameters(node: Function): boolean`
+
+**File**: `event-handler-utils.ts`  
+**Purpose**: Checks if a function has event handler-style parameters
+
+### `isFunctionType(node: TSESTree.TypeNode): boolean`
+
+**File**: `event-handler-utils.ts`  
+**Purpose**: Checks if a TypeScript type node represents a function type
+
+### `looksLikeFunctionType(propertyName: string, node?: TSESTree.TypeNode): boolean`
+
+**File**: `event-handler-utils.ts`  
+**Purpose**: Checks if a property looks like a function type based on name or type annotation
 
 ## Maintenance
 

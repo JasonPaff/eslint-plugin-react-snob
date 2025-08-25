@@ -1,81 +1,17 @@
 import { TSESTree, AST_NODE_TYPES } from '@typescript-eslint/utils';
 
-import { createRule, countLogicalOperators } from '../utils';
+import { 
+  createRule, 
+  countLogicalOperators,
+  containsJSX,
+  suggestUnderscorePrefix,
+  hasUnderscorePrefix,
+  isDerivedBooleanExpression
+} from '../utils';
 
-/**
- * Converts a variable name to its suggested underscore prefixed version
- */
-function suggestUnderscorePrefix(name: string): string {
-  if (name.startsWith('_')) return name;
-  return `_${name}`;
-}
+// Use shared naming utilities from utils
 
-/**
- * Checks if a name already starts with underscore
- */
-function hasUnderscorePrefix(name: string): boolean {
-  return name.startsWith('_');
-}
-
-/**
- * Checks if an expression is likely to produce a boolean value
- */
-function isLikelyBooleanExpression(node: TSESTree.Expression): boolean {
-  switch (node.type) {
-    case AST_NODE_TYPES.UnaryExpression:
-      // Negation operators like !, especially double negation !!
-      return node.operator === '!';
-
-    case AST_NODE_TYPES.BinaryExpression:
-      // Comparison operators return boolean values
-      return ['==', '===', '!=', '!==', '<', '>', '<=', '>='].includes(node.operator);
-
-    case AST_NODE_TYPES.ConditionalExpression:
-      // Ternary expressions that return boolean values
-      return isLikelyBooleanExpression(node.consequent) || isLikelyBooleanExpression(node.alternate);
-
-    case AST_NODE_TYPES.LogicalExpression:
-      // For logical expressions, check if both operands are likely boolean
-      return isLikelyBooleanExpression(node.left) && isLikelyBooleanExpression(node.right);
-
-    case AST_NODE_TYPES.Literal:
-      return typeof node.value === 'boolean';
-
-    case AST_NODE_TYPES.Identifier:
-      // Identifiers that start with common boolean prefixes are likely boolean
-      return /^(is|has|can|should|will|does|did|was|were|am|are|be)[A-Z]/.test(node.name);
-
-    default:
-      return false;
-  }
-}
-
-/**
- * Checks if an expression is a derived boolean expression that should require underscore prefix
- */
-function isDerivedBooleanExpression(node: TSESTree.Expression): boolean {
-  switch (node.type) {
-    case AST_NODE_TYPES.LogicalExpression:
-      // Only consider logical expressions as derived boolean if BOTH sides are likely producing boolean values
-      // This filters out string fallback patterns like `error || 'default'`
-      return isLikelyBooleanExpression(node.left) && isLikelyBooleanExpression(node.right);
-
-    case AST_NODE_TYPES.UnaryExpression:
-      // Negation operators like !, especially double negation !!
-      return node.operator === '!';
-
-    case AST_NODE_TYPES.BinaryExpression:
-      // Comparison operators return boolean values
-      return ['==', '===', '!=', '!==', '<', '>', '<=', '>='].includes(node.operator);
-
-    case AST_NODE_TYPES.ConditionalExpression:
-      // Ternary expressions that return boolean values
-      return isLikelyBooleanExpression(node.consequent) && isLikelyBooleanExpression(node.alternate);
-
-    default:
-      return false;
-  }
-}
+// Use shared boolean expression utilities from utils
 
 /**
  * Checks if a logical expression is likely a string fallback pattern (e.g., error || 'default')
@@ -115,40 +51,7 @@ function isComplexDerivedExpression(node: TSESTree.Expression): boolean {
   return false;
 }
 
-/**
- * Checks if a node contains JSX elements
- */
-function containsJSX(node: TSESTree.Node, visited: Set<TSESTree.Node> = new Set()): boolean {
-  if (visited.has(node)) {
-    return false; // Prevent infinite recursion
-  }
-  visited.add(node);
-
-  if (node.type === AST_NODE_TYPES.JSXElement || node.type === AST_NODE_TYPES.JSXFragment) {
-    return true;
-  }
-
-  // Check children nodes, but avoid parent references
-  for (const key in node) {
-    if (key === 'parent') continue; // Skip parent references to avoid cycles
-
-    const value = (node as unknown as Record<string, unknown>)[key];
-    if (value && typeof value === 'object') {
-      if (Array.isArray(value)) {
-        if (
-          value.some(
-            (item) => item && typeof item === 'object' && 'type' in item && containsJSX(item as TSESTree.Node, visited)
-          )
-        ) {
-          return true;
-        }
-      } else if ('type' in value && containsJSX(value as TSESTree.Node, visited)) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
+// Use shared JSX detection utility from utils
 
 export const requireDerivedConditionalPrefix = createRule({
   create(context) {

@@ -1,173 +1,25 @@
 import { TSESTree } from '@typescript-eslint/utils';
 
-import { createRule } from '../utils';
+import { 
+  createRule,
+  suggestPrefixedName,
+  hasAnyValidPrefix,
+  isBooleanType,
+  isBooleanLiteral,
+  isBooleanExpression,
+  isUseStateWithBoolean,
+  isInZodOmitOrPickMethod,
+  isInConstructorCall
+} from '../utils';
 
 
-/**
- * Converts a variable name to its suggested prefixed version based on allowed prefixes
- */
-function suggestPrefixedName(name: string, allowedPrefixes: string[]): string {
-  // Check if name already starts with any allowed prefix
-  for (const prefix of allowedPrefixes) {
-    if (hasValidPrefix(name, prefix)) return name;
-  }
+// Use shared naming utilities from utils
 
-  // Use the first allowed prefix as the suggested prefix
-  const prefix = allowedPrefixes[0];
-  
-  // If the name is all uppercase (constants), suggest UPPER_CASE prefix
-  if (/^[A-Z_0-9]+$/.test(name)) {
-    return `${prefix.toUpperCase()}_${name}`;
-  }
+// Use shared boolean type utilities from utils
 
-  // Handle underscore prefix case
-  if (name.startsWith('_')) {
-    const nameWithoutUnderscore = name.slice(1);
-    const capitalized = nameWithoutUnderscore.charAt(0).toUpperCase() + nameWithoutUnderscore.slice(1);
-    return `_${prefix}${capitalized}`;
-  }
+// Use shared context detection utilities from utils
 
-  // Handle common patterns and capitalize appropriately
-  const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
-  return `${prefix}${capitalized}`;
-}
-
-
-/**
- * Checks if a name already starts with a valid prefix (including underscore prefix)
- */
-function hasValidPrefix(name: string, prefix: string): boolean {
-  const lowerPrefix = prefix.toLowerCase();
-  const upperPrefix = prefix.toUpperCase();
-  
-  // Check for camelCase prefix (e.g., "is", "has", "should")
-  const camelCaseRegex = new RegExp(`^${lowerPrefix}[A-Z]`);
-  
-  // Check for UPPER_CASE prefix (e.g., "IS_", "HAS_", "SHOULD_")
-  const upperCaseRegex = new RegExp(`^${upperPrefix}_`);
-  
-  // Check for underscore prefix case (e.g., "_is", "_has", "_should")
-  const underscoreRegex = new RegExp(`^_${lowerPrefix}[A-Z]`);
-  
-  return camelCaseRegex.test(name) || upperCaseRegex.test(name) || underscoreRegex.test(name);
-}
-
-/**
- * Checks if a name starts with any of the allowed prefixes
- */
-function hasAnyValidPrefix(name: string, allowedPrefixes: string[]): boolean {
-  return allowedPrefixes.some(prefix => hasValidPrefix(name, prefix));
-}
-
-/**
- * Checks if a type annotation is boolean or includes boolean
- */
-function isBooleanType(typeAnnotation: TSESTree.TSTypeAnnotation | undefined): boolean {
-  if (!typeAnnotation) return false;
-
-  const type = typeAnnotation.typeAnnotation;
-
-  if (type.type === 'TSBooleanKeyword') {
-    return true;
-  }
-
-  if (type.type === 'TSUnionType') {
-    return type.types.some((unionType) => unionType.type === 'TSBooleanKeyword');
-  }
-
-  return false;
-}
-
-/**
- * Checks if a literal value is boolean
- */
-function isBooleanLiteral(node: TSESTree.Expression | null | undefined): boolean {
-  return node?.type === 'Literal' && typeof node.value === 'boolean';
-}
-
-/**
- * Checks if an expression is likely to return a boolean value
- */
-function isBooleanExpression(node: TSESTree.Expression): boolean {
-  switch (node.type) {
-    case 'Literal':
-      return typeof node.value === 'boolean';
-
-    case 'UnaryExpression':
-      return node.operator === '!';
-
-    case 'BinaryExpression':
-      return ['==', '===', '!=', '!==', '<', '>', '<=', '>='].includes(node.operator);
-
-    case 'LogicalExpression':
-      return true; // Most logical expressions result in boolean-like values
-
-    case 'ConditionalExpression':
-      return isBooleanExpression(node.consequent) || isBooleanExpression(node.alternate);
-
-    default:
-      return false;
-  }
-}
-
-/**
- * Checks if a property is inside a Zod .omit() or .pick() method call
- */
-function isInZodOmitOrPickMethod(node: TSESTree.Node): boolean {
-  let current: TSESTree.Node | null = node;
-
-  // Walk up the AST to find a CallExpression with .omit() or .pick()
-  while (current) {
-    if (current.type === 'CallExpression') {
-      const { callee } = current;
-      
-      // Check if this is a member expression call like schema.omit() or schema.pick()
-      if (callee.type === 'MemberExpression' && 
-          callee.property.type === 'Identifier' &&
-          (callee.property.name === 'omit' || callee.property.name === 'pick')) {
-        return true;
-      }
-    }
-    
-    current = current.parent || null;
-  }
-
-  return false;
-}
-
-/**
- * Checks if a property is inside a constructor call (new Something(...))
- */
-function isInConstructorCall(node: TSESTree.Node): boolean {
-  let current: TSESTree.Node | null = node;
-
-  // Walk up the AST to find a NewExpression
-  while (current) {
-    if (current.type === 'NewExpression') {
-      return true;
-    }
-    
-    current = current.parent || null;
-  }
-
-  return false;
-}
-
-/**
- * Checks if a CallExpression is a useState call with a boolean initial value
- */
-function isUseStateWithBoolean(node: TSESTree.CallExpression): boolean {
-  if (node.callee.type !== 'Identifier' || node.callee.name !== 'useState') {
-    return false;
-  }
-
-  if (node.arguments.length === 0) return false;
-
-  const firstArg = node.arguments[0];
-  if (firstArg.type === 'SpreadElement') return false;
-
-  return isBooleanLiteral(firstArg) || isBooleanExpression(firstArg);
-}
+// Use shared useState detection utility from utils
 
 type Options = [
   {
