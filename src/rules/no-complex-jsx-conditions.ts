@@ -75,6 +75,27 @@ function hasComplexOperandsInChain(node: TSESTree.LogicalExpression): boolean {
   return traverseLogical(node);
 }
 
+function isInsideClassNameUtility(node: TSESTree.JSXExpressionContainer): boolean {
+  // Check if this JSX expression is inside a className utility function call
+  const parent = node.parent;
+  if (parent && parent.type === AST_NODE_TYPES.JSXAttribute) {
+    const jsxAttribute = parent as TSESTree.JSXAttribute;
+    if (
+      jsxAttribute.name.type === AST_NODE_TYPES.JSXIdentifier &&
+      jsxAttribute.name.name === 'className' &&
+      node.expression.type === AST_NODE_TYPES.CallExpression
+    ) {
+      const callExpression = node.expression;
+      if (callExpression.callee.type === AST_NODE_TYPES.Identifier) {
+        const functionName = callExpression.callee.name;
+        // Allow className utility functions
+        return ['cn', 'clsx', 'cva', 'cx'].includes(functionName);
+      }
+    }
+  }
+  return false;
+}
+
 export const noComplexJsxConditions = createRule({
   create(context) {
     const checkedNodes = new Set<TSESTree.JSXExpressionContainer>();
@@ -86,6 +107,11 @@ export const noComplexJsxConditions = createRule({
       checkedNodes.add(node);
 
       if (node.expression.type === AST_NODE_TYPES.JSXEmptyExpression) {
+        return;
+      }
+
+      // Skip complex condition checking if inside className utility functions
+      if (isInsideClassNameUtility(node)) {
         return;
       }
 

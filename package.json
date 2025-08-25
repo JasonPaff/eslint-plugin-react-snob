@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-react-snob",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "An ESLint plugin for React best practices",
   "keywords": [
     "eslint",

@@ -9,7 +9,7 @@ import { requireJsxStringBraces } from '../rules/require-jsx-string-braces';
 const plugin = {
   meta: {
     name: 'eslint-plugin-react-snob',
-    version: '0.0.16',
+    version: '0.0.17',
   },
   rules: {
     'component-prop-interface-naming': componentPropInterfaceNaming,
