@@ -103,6 +103,17 @@ export function createComponentPropInterfaceNamingInvalidCase(code: string, actu
   };
 }
 
+// Helper function to create invalid test cases for consistent-event-handler-naming rule
+export function createEventHandlerInvalidCase(code: string, errors: Array<{ actual: string; context: 'internal' | 'prop'; expected: string }>) {
+  return {
+    code,
+    errors: errors.map((error) => ({
+      data: error,
+      messageId: 'incorrectHandlerNaming' as const,
+    })),
+  };
+}
+
 // Helper function to create valid test cases
 export function createValidCase(code: string) {
   return { code };
