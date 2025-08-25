@@ -52,6 +52,30 @@ export function createDerivedConditionalInvalidCase(code: string, name: string, 
   };
 }
 
+// Helper function to create invalid test cases for require-boolean-prefix-is rule
+export function createBooleanPrefixInvalidCase(
+  code: string,
+  name: string,
+  prefixes: string,
+  suggested: string,
+  options?: Array<{ allowedPrefixes: string[] }>
+) {
+  return {
+    code,
+    errors: [
+      {
+        data: {
+          name,
+          prefixes,
+          suggested,
+        },
+        messageId: 'booleanShouldStartWithPrefix' as const,
+      },
+    ],
+    ...(options && { options }),
+  };
+}
+
 // Helper function to create invalid test cases for no-complex-jsx-conditions rule
 export function createComplexConditionInvalidCase(code: string, errorCount: number = 1) {
   return {
