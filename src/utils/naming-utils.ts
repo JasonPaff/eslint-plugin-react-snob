@@ -24,7 +24,7 @@ export function suggestPrefixedName(name: string, allowedPrefixes: string[]): st
 
   // Use the first allowed prefix as the suggested prefix
   const prefix = allowedPrefixes[0];
-  
+
   // If the name is all uppercase (constants), suggest UPPER_CASE prefix
   if (/^[A-Z_0-9]+$/.test(name)) {
     return `${prefix.toUpperCase()}_${name}`;
@@ -48,16 +48,16 @@ export function suggestPrefixedName(name: string, allowedPrefixes: string[]): st
 export function hasValidPrefix(name: string, prefix: string): boolean {
   const lowerPrefix = prefix.toLowerCase();
   const upperPrefix = prefix.toUpperCase();
-  
+
   // Check for camelCase prefix (e.g., "is", "has", "should")
   const camelCaseRegex = new RegExp(`^${lowerPrefix}[A-Z]`);
-  
+
   // Check for UPPER_CASE prefix (e.g., "IS_", "HAS_", "SHOULD_")
   const upperCaseRegex = new RegExp(`^${upperPrefix}_`);
-  
+
   // Check for underscore prefix case (e.g., "_is", "_has", "_should")
   const underscoreRegex = new RegExp(`^_${lowerPrefix}[A-Z]`);
-  
+
   return camelCaseRegex.test(name) || upperCaseRegex.test(name) || underscoreRegex.test(name);
 }
 
@@ -65,5 +65,5 @@ export function hasValidPrefix(name: string, prefix: string): boolean {
  * Checks if a name starts with any of the allowed prefixes
  */
 export function hasAnyValidPrefix(name: string, allowedPrefixes: string[]): boolean {
-  return allowedPrefixes.some(prefix => hasValidPrefix(name, prefix));
+  return allowedPrefixes.some((prefix) => hasValidPrefix(name, prefix));
 }

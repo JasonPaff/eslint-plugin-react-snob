@@ -41,7 +41,11 @@ export function isBooleanExpression(node: TSESTree.Expression): boolean {
       return ['==', '===', '!=', '!==', '<', '>', '<=', '>='].includes(node.operator);
 
     case 'LogicalExpression':
-      return true; // Most logical expressions result in boolean-like values
+      // Only && and || return boolean-like values, ?? returns the right operand's value
+      if (node.operator === '??') {
+        return false; // Nullish coalescing doesn't necessarily return boolean
+      }
+      return true; // && and || result in boolean-like values
 
     case 'ConditionalExpression':
       return isBooleanExpression(node.consequent) || isBooleanExpression(node.alternate);

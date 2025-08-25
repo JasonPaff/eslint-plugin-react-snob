@@ -15,8 +15,6 @@
     ],
     "deny": [],
     "ask": [],
-    "additionalDirectories": [
-      "C:\\c\\Users\\JasonPaff\\dev"
-    ]
+    "additionalDirectories": ["C:\\c\\Users\\JasonPaff\\dev"]
   }
 }

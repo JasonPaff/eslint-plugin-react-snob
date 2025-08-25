@@ -1,6 +1,6 @@
 import { TSESTree } from '@typescript-eslint/utils';
 
-import { 
+import {
   createRule,
   suggestPrefixedName,
   hasAnyValidPrefix,
@@ -9,9 +9,8 @@ import {
   isBooleanExpression,
   isUseStateWithBoolean,
   isInZodOmitOrPickMethod,
-  isInConstructorCall
+  isInConstructorCall,
 } from '../utils';
-
 
 // Use shared naming utilities from utils
 
@@ -24,13 +23,13 @@ import {
 type Options = [
   {
     allowedPrefixes?: string[];
-  }
+  },
 ];
 
 export const requireBooleanPrefixIs = createRule<Options, 'booleanShouldStartWithPrefix'>({
   create(context, [options = {}]) {
     const { allowedPrefixes = ['is'] } = options;
-    
+
     /**
      * Reports an error for a boolean identifier that doesn't start with an allowed prefix
      */
@@ -38,9 +37,13 @@ export const requireBooleanPrefixIs = createRule<Options, 'booleanShouldStartWit
       if (hasAnyValidPrefix(name, allowedPrefixes)) return;
 
       const suggested = suggestPrefixedName(name, allowedPrefixes);
-      const prefixList = allowedPrefixes.length === 1 
-        ? `"${allowedPrefixes[0]}"`
-        : allowedPrefixes.slice(0, -1).map(p => `"${p}"`).join(', ') + `, or "${allowedPrefixes[allowedPrefixes.length - 1]}"`;
+      const prefixList =
+        allowedPrefixes.length === 1
+          ? `"${allowedPrefixes[0]}"`
+          : allowedPrefixes
+              .slice(0, -1)
+              .map((p) => `"${p}"`)
+              .join(', ') + `, or "${allowedPrefixes[allowedPrefixes.length - 1]}"`;
 
       context.report({
         data: {

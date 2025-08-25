@@ -45,15 +45,17 @@ export function isInZodOmitOrPickMethod(node: TSESTree.Node): boolean {
   while (current) {
     if (current.type === 'CallExpression') {
       const { callee } = current;
-      
+
       // Check if this is a member expression call like schema.omit() or schema.pick()
-      if (callee.type === 'MemberExpression' && 
-          callee.property.type === 'Identifier' &&
-          (callee.property.name === 'omit' || callee.property.name === 'pick')) {
+      if (
+        callee.type === 'MemberExpression' &&
+        callee.property.type === 'Identifier' &&
+        (callee.property.name === 'omit' || callee.property.name === 'pick')
+      ) {
         return true;
       }
     }
-    
+
     current = current.parent || null;
   }
 
@@ -71,7 +73,7 @@ export function isInConstructorCall(node: TSESTree.Node): boolean {
     if (current.type === 'NewExpression') {
       return true;
     }
-    
+
     current = current.parent || null;
   }
 

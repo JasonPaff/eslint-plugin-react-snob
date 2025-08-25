@@ -69,30 +69,17 @@ import { ruleName } from '../../src/rules/rule-name';
 import { createInvalidCase, createValidCase, PARSER_CONFIG } from '../../src/utils/test-utils';
 
 // Test cases for [describe main functionality]
-const mainFunctionalityCases = [
-  createInvalidCase(/* ... */),
-  createInvalidCase(/* ... */),
-];
+const mainFunctionalityCases = [createInvalidCase(/* ... */), createInvalidCase(/* ... */)];
 
 // Test cases for [describe edge cases]
-const edgeCases = [
-  createInvalidCase(/* ... */),
-];
+const edgeCases = [createInvalidCase(/* ... */)];
 
 // Test cases for [describe valid scenarios]
-const validCases = [
-  createValidCase(/* ... */),
-  createValidCase(/* ... */),
-];
+const validCases = [createValidCase(/* ... */), createValidCase(/* ... */)];
 
 const TEST_CASES = {
-  invalid: [
-    ...mainFunctionalityCases,
-    ...edgeCases,
-  ],
-  valid: [
-    ...validCases,
-  ],
+  invalid: [...mainFunctionalityCases, ...edgeCases],
+  valid: [...validCases],
 };
 
 const ruleTester = new RuleTester(PARSER_CONFIG);
@@ -107,13 +94,23 @@ Organize test cases into logical groups with descriptive names:
 
 ```typescript
 // ✅ Good: Descriptive group names
-const basicStringAttributeCases = [/* ... */];
-const quotingVariationCases = [/* ... */];
-const multipleAttributeCases = [/* ... */];
+const basicStringAttributeCases = [
+  /* ... */
+];
+const quotingVariationCases = [
+  /* ... */
+];
+const multipleAttributeCases = [
+  /* ... */
+];
 
 // ❌ Bad: Generic or unclear names
-const testCases1 = [/* ... */];
-const invalidTests = [/* ... */];
+const testCases1 = [
+  /* ... */
+];
+const invalidTests = [
+  /* ... */
+];
 ```
 
 ### Use Helper Functions
@@ -123,11 +120,9 @@ Always use the shared helper functions for consistency:
 ```typescript
 // ✅ Good: Use helper functions
 const basicStringAttributeCases = [
-  createInvalidCase(
-    '<div className="text-center">Content</div>',
-    '<div className={"text-center"}>Content</div>',
-    [{ attribute: 'className', value: 'text-center' }]
-  ),
+  createInvalidCase('<div className="text-center">Content</div>', '<div className={"text-center"}>Content</div>', [
+    { attribute: 'className', value: 'text-center' },
+  ]),
 ];
 
 // ❌ Bad: Manual object creation
@@ -200,16 +195,17 @@ Group invalid test cases by the type of issue they test:
 #### Invalid Test Case Construction
 
 Use `createInvalidCase()` with these parameters:
+
 1. **Input code** - The code that should trigger the rule
 2. **Expected output** - The code after auto-fix is applied
 3. **Expected errors** - Array of error objects with `attribute` and `value`
 
 ```typescript
 createInvalidCase(
-  '<div className="text-center">Content</div>',           // Input
-  '<div className={"text-center"}>Content</div>',         // Expected output
-  [{ attribute: 'className', value: 'text-center' }]      // Expected errors
-)
+  '<div className="text-center">Content</div>', // Input
+  '<div className={"text-center"}>Content</div>', // Expected output
+  [{ attribute: 'className', value: 'text-center' }] // Expected errors
+);
 ```
 
 #### Manual Invalid Test Case Structure (when helpers can't be used)
@@ -252,7 +248,7 @@ Group valid test cases by why they should pass:
 Use `createValidCase()` with just the code that should pass:
 
 ```typescript
-createValidCase('<div className={"text-center"}>Content</div>')
+createValidCase('<div className={"text-center"}>Content</div>');
 ```
 
 #### Valid Test Case Guidelines
@@ -279,32 +275,50 @@ invalid: [
 ## Naming Conventions
 
 ### Variable Names
+
 - Use descriptive names that explain what the test cases cover
 - End group names with `Cases` for consistency
 - Use camelCase for variable names
 
 ```typescript
 // ✅ Good examples
-const basicStringAttributeCases = [/* ... */];
-const namespacedAttributeCases = [/* ... */];
-const validMultilineCases = [/* ... */];
+const basicStringAttributeCases = [
+  /* ... */
+];
+const namespacedAttributeCases = [
+  /* ... */
+];
+const validMultilineCases = [
+  /* ... */
+];
 
 // ❌ Bad examples
-const tests1 = [/* ... */];
-const invalidCases = [/* ... */]; // Too generic
-const BASIC_TESTS = [/* ... */]; // Wrong case style
+const tests1 = [
+  /* ... */
+];
+const invalidCases = [
+  /* ... */
+]; // Too generic
+const BASIC_TESTS = [
+  /* ... */
+]; // Wrong case style
 ```
 
 ### Comments
+
 - Add a comment above each test case group explaining its purpose
 - Use consistent comment formatting
 
 ```typescript
 // Test cases for basic string attributes that should be wrapped in braces
-const basicStringAttributeCases = [/* ... */];
+const basicStringAttributeCases = [
+  /* ... */
+];
 
 // Test cases for different quote styles
-const quotingVariationCases = [/* ... */];
+const quotingVariationCases = [
+  /* ... */
+];
 ```
 
 ## Common Test Scenarios for React Rules
@@ -381,6 +395,7 @@ const invalidTypescriptCases = [
 ## Testing Best Practices
 
 ### Do's
+
 - ✅ Group related test cases together
 - ✅ Use descriptive variable names and comments
 - ✅ Use shared helper functions and constants (`PARSER_CONFIG`, `createInvalidCase`, etc.)
@@ -393,6 +408,7 @@ const invalidTypescriptCases = [
 - ✅ Ensure rule doesn't apply where it shouldn't
 
 ### Don'ts
+
 - ❌ Don't create monolithic test case arrays
 - ❌ Don't repeat test case structure manually when helpers exist
 - ❌ Don't use generic or unclear naming
@@ -411,10 +427,10 @@ createValidCase(`
   function Component({ value }: Props) {
     return <div>{value}</div>;
   }
-`)
+`);
 
 // Single-line code: Use regular strings
-createValidCase('<div className="test">Content</div>')
+createValidCase('<div className="test">Content</div>');
 ```
 
 ### Error Message Testing

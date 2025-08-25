@@ -87,7 +87,12 @@ export function createComplexConditionInvalidCase(code: string, errorCount: numb
 }
 
 // Helper function to create invalid test cases for component-prop-interface-naming rule
-export function createComponentPropInterfaceNamingInvalidCase(code: string, actual: string, component: string, expected: string) {
+export function createComponentPropInterfaceNamingInvalidCase(
+  code: string,
+  actual: string,
+  component: string,
+  expected: string
+) {
   return {
     code,
     errors: [
@@ -104,7 +109,10 @@ export function createComponentPropInterfaceNamingInvalidCase(code: string, actu
 }
 
 // Helper function to create invalid test cases for consistent-event-handler-naming rule
-export function createEventHandlerInvalidCase(code: string, errors: Array<{ actual: string; context: 'internal' | 'prop'; expected: string }>) {
+export function createEventHandlerInvalidCase(
+  code: string,
+  errors: Array<{ actual: string; context: 'internal' | 'prop'; expected: string }>
+) {
   return {
     code,
     errors: errors.map((error) => ({

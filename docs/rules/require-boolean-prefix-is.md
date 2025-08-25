@@ -20,6 +20,8 @@ The rule applies to:
 - Object properties with boolean values
 - Class properties with boolean values or types
 
+**Note**: The rule correctly handles the nullish coalescing operator (`??`). Variables that use nullish coalescing with non-boolean values (strings, numbers, etc.) are not flagged, as the operator returns the actual value type rather than a boolean.
+
 ## Exception: Zod Schema Methods
 
 The rule makes a special exception for Zod schema `.omit()` and `.pick()` method calls. When using these Zod utilities, boolean values in the property selection objects are not required to follow the "is" prefix convention. This is because these boolean values represent whether to include/exclude properties in the schema transformation, not actual boolean data values.
@@ -27,8 +29,8 @@ The rule makes a special exception for Zod schema `.omit()` and `.pick()` method
 ```jsx
 // ✅ Exception: Zod .omit() and .pick() methods
 const schema = userSchema.omit({
-  createdAt: true,    // OK - indicates property should be omitted
-  updatedAt: false,   // OK - indicates property should be included
+  createdAt: true, // OK - indicates property should be omitted
+  updatedAt: false, // OK - indicates property should be included
 });
 ```
 
@@ -281,6 +283,25 @@ const loading = someFunction();
 ```
 
 ```jsx
+// ✅ Nullish coalescing operator with non-boolean values
+const apple = 'pizza' ?? 'pie';
+const title = userTitle ?? 'Default Title';
+const count = userCount ?? 0;
+
+// ✅ Nullish coalescing in component props
+interface ComponentProps {
+  breakpoint: string;
+  maxItems: number;
+}
+
+const Component = ({ breakpoint, maxItems }: ComponentProps) => {
+  const _breakpoint = breakpoint ?? 'mobile';
+  const _maxItems = maxItems ?? 10;
+  return <div>Content</div>;
+};
+```
+
+```jsx
 // ✅ Zod schema .omit() and .pick() methods (exception)
 const userSchema = z.object({
   name: z.string(),
@@ -290,24 +311,22 @@ const userSchema = z.object({
 
 // Boolean values in .omit() and .pick() are allowed without "is" prefix
 const publicUserSchema = userSchema.omit({
-  isActive: true,      // ✅ Allowed in .omit()
-  createdAt: true,     // ✅ Allowed in .omit()  
+  isActive: true, // ✅ Allowed in .omit()
+  createdAt: true, // ✅ Allowed in .omit()
 });
 
 const basicUserSchema = userSchema.pick({
-  name: true,          // ✅ Allowed in .pick()
-  email: true,         // ✅ Allowed in .pick()
-  updatedAt: false,    // ✅ Allowed in .pick()
+  name: true, // ✅ Allowed in .pick()
+  email: true, // ✅ Allowed in .pick()
+  updatedAt: false, // ✅ Allowed in .pick()
 });
 
 // Complex Zod transformations are also allowed
-const transformedSchema = baseSchema
-  .omit({ metadata: true })
-  .pick({ 
-    name: true,
-    isActive: true,
-    createdAt: false,
-  });
+const transformedSchema = baseSchema.omit({ metadata: true }).pick({
+  name: true,
+  isActive: true,
+  createdAt: false,
+});
 ```
 
 ## Options

@@ -293,6 +293,31 @@ const correctDefaultConstantCases = [
   ),
 ];
 
+// Test cases for nullish coalescing operator with non-boolean types that should be ignored
+const nullishCoalescingNonBooleanCases = [
+  createValidCase(`const apple = 'pizza' ?? 'pie';`),
+  createValidCase(`
+    interface ComponentProps {
+      breakpoint: string;
+    }
+    
+    const Component = ({ breakpoint }: ComponentProps) => {
+      const _breakpoint = breakpoint ?? breakpointConstants.mobile.name;
+      return (<div>UI</div>)
+    }
+  `),
+  createValidCase(`
+    interface ComponentProps {
+      breakpoint: number;
+    }
+    
+    const Component = ({ breakpoint }: ComponentProps) => {
+      const _breakpoint = breakpoint ?? 1200;
+      return (<div>UI</div>)
+    }
+  `),
+];
+
 // Test cases for Zod schema methods that should be ignored
 const zodSchemaCases = [
   createValidCase(
@@ -387,6 +412,7 @@ const TEST_CASES = {
     ...zodSchemaCases,
     ...ignoredContextCases,
     ...complexExpressionCases,
+    ...nullishCoalescingNonBooleanCases,
   ],
 };
 

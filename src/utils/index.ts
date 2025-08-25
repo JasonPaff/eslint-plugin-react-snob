@@ -14,33 +14,33 @@ export { findInterfaceNamesInTypeReference, getQualifiedTypeName, getFullTypeSig
 export { containsJSX, isInZodOmitOrPickMethod, isInConstructorCall } from './jsx-utils';
 
 // Naming convention utilities
-export { 
-  suggestUnderscorePrefix, 
-  hasUnderscorePrefix, 
-  suggestPrefixedName, 
-  hasValidPrefix, 
-  hasAnyValidPrefix 
+export {
+  suggestUnderscorePrefix,
+  hasUnderscorePrefix,
+  suggestPrefixedName,
+  hasValidPrefix,
+  hasAnyValidPrefix,
 } from './naming-utils';
 
 // Boolean type and expression utilities
-export { 
-  isBooleanType, 
-  isBooleanLiteral, 
-  isBooleanExpression, 
-  isLikelyBooleanExpression, 
-  isDerivedBooleanExpression, 
-  isUseStateWithBoolean 
+export {
+  isBooleanType,
+  isBooleanLiteral,
+  isBooleanExpression,
+  isLikelyBooleanExpression,
+  isDerivedBooleanExpression,
+  isUseStateWithBoolean,
 } from './boolean-utils';
 
 // Event handler utilities
-export { 
+export {
   eventHandlerAttributes,
-  extractEventFromHandlerName, 
-  generateHandleEventName, 
-  generateOnEventName, 
-  isEventHandlerName, 
-  isEventHandlerParameter, 
-  hasEventHandlerParameters, 
-  isFunctionType, 
-  looksLikeFunctionType 
+  extractEventFromHandlerName,
+  generateHandleEventName,
+  generateOnEventName,
+  isEventHandlerName,
+  isEventHandlerParameter,
+  hasEventHandlerParameters,
+  isFunctionType,
+  looksLikeFunctionType,
 } from './event-handler-utils';

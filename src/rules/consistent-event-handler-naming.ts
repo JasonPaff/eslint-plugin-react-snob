@@ -1,14 +1,14 @@
 import { TSESTree } from '@typescript-eslint/utils';
 
-import { 
-  createRule, 
+import {
+  createRule,
   eventHandlerAttributes,
   extractEventFromHandlerName,
   generateHandleEventName,
   generateOnEventName,
   isEventHandlerName,
   hasEventHandlerParameters,
-  looksLikeFunctionType
+  looksLikeFunctionType,
 } from '../utils';
 
 export const consistentEventHandlerNaming = createRule({

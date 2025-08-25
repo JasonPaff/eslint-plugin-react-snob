@@ -20,31 +20,31 @@ export function getQualifiedTypeName(node: TSESTree.TSQualifiedName): string {
  */
 export function getFullTypeSignature(node: TSESTree.TSTypeReference): string {
   let baseName = '';
-  
+
   // Get the base type name
   if (node.typeName.type === 'Identifier') {
     baseName = node.typeName.name;
   } else if (node.typeName.type === 'TSQualifiedName') {
     baseName = getQualifiedTypeName(node.typeName);
   }
-  
+
   // Add generic parameters if they exist
   if (node.typeArguments && node.typeArguments.params.length > 0) {
-    const generics = node.typeArguments.params.map(param => {
-      if (param.type === 'TSLiteralType' && param.literal.type === 'Literal') {
-        return typeof param.literal.value === 'string' 
-          ? `'${param.literal.value}'` 
-          : String(param.literal.value);
-      } else if (param.type === 'TSTypeReference') {
-        return getFullTypeSignature(param);
-      }
-      // For other complex types, use a simple representation
-      return 'T';
-    }).join(', ');
-    
+    const generics = node.typeArguments.params
+      .map((param) => {
+        if (param.type === 'TSLiteralType' && param.literal.type === 'Literal') {
+          return typeof param.literal.value === 'string' ? `'${param.literal.value}'` : String(param.literal.value);
+        } else if (param.type === 'TSTypeReference') {
+          return getFullTypeSignature(param);
+        }
+        // For other complex types, use a simple representation
+        return 'T';
+      })
+      .join(', ');
+
     return `${baseName}<${generics}>`;
   }
-  
+
   return baseName;
 }
 

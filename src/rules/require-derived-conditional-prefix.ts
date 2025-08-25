@@ -1,12 +1,12 @@
 import { TSESTree, AST_NODE_TYPES } from '@typescript-eslint/utils';
 
-import { 
-  createRule, 
+import {
+  createRule,
   countLogicalOperators,
   containsJSX,
   suggestUnderscorePrefix,
   hasUnderscorePrefix,
-  isDerivedBooleanExpression
+  isDerivedBooleanExpression,
 } from '../utils';
 
 // Use shared naming utilities from utils
