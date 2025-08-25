@@ -1,6 +1,12 @@
 import { TSESTree } from '@typescript-eslint/utils';
 
-import { createRule, extractComponentName, isComponentFunction, findInterfaceNamesInTypeReference, getFullTypeSignature } from '../utils';
+import {
+  createRule,
+  extractComponentName,
+  isComponentFunction,
+  findInterfaceNamesInTypeReference,
+  getFullTypeSignature,
+} from '../utils';
 
 export const componentPropInterfaceNaming = createRule({
   create(context) {
@@ -12,7 +18,7 @@ export const componentPropInterfaceNaming = createRule({
       const fullExpectedName = `${componentName}Props`;
       let baseExpectedName = fullExpectedName;
 
-      // If component name ends with "Component" or "FunctionComponent",
+      // If the component name ends with "Component" or "FunctionComponent",
       // also accept interface without those suffixes
       if (componentName.endsWith('Component')) {
         const baseName = componentName.replace(/(?:Function)?Component$/, '');

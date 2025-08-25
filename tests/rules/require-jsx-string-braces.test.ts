@@ -1,68 +1,26 @@
 import { RuleTester } from '@typescript-eslint/rule-tester';
 
 import { requireJsxStringBraces } from '../../src/rules/require-jsx-string-braces';
-
-// Parser configuration for JSX testing
-const PARSER_CONFIG = {
-  languageOptions: {
-    parser: require('@typescript-eslint/parser'),
-    parserOptions: {
-      ecmaFeatures: {
-        jsx: true,
-      },
-      ecmaVersion: 2020,
-      sourceType: 'module' as const,
-    },
-  },
-} as const;
-
-// Helper function to create invalid test cases
-function createInvalidCase(
-  code: string,
-  output: string,
-  errors: Array<{ attribute: string; value: string }>
-) {
-  return {
-    code,
-    output,
-    errors: errors.map(error => ({
-      data: error,
-      messageId: 'requireBraces' as const,
-    })),
-  };
-}
-
-// Helper function to create valid test cases
-function createValidCase(code: string) {
-  return { code };
-}
+import { createInvalidCase, createValidCase, PARSER_CONFIG } from '../../src/utils/test-utils';
 
 // Test cases for basic string attributes that should be wrapped in braces
 const basicStringAttributeCases = [
-  createInvalidCase(
-    '<div className="text-center">Content</div>',
-    '<div className={"text-center"}>Content</div>',
-    [{ attribute: 'className', value: 'text-center' }]
-  ),
-  createInvalidCase(
-    '<div aria-label="hello">Content</div>',
-    '<div aria-label={"hello"}>Content</div>',
-    [{ attribute: 'aria-label', value: 'hello' }]
-  ),
-  createInvalidCase(
-    '<CustomComponent stringProp="wrong" />',
-    '<CustomComponent stringProp={"wrong"} />',
-    [{ attribute: 'stringProp', value: 'wrong' }]
-  ),
+  createInvalidCase('<div className="text-center">Content</div>', '<div className={"text-center"}>Content</div>', [
+    { attribute: 'className', value: 'text-center' },
+  ]),
+  createInvalidCase('<div aria-label="hello">Content</div>', '<div aria-label={"hello"}>Content</div>', [
+    { attribute: 'aria-label', value: 'hello' },
+  ]),
+  createInvalidCase('<CustomComponent stringProp="wrong" />', '<CustomComponent stringProp={"wrong"} />', [
+    { attribute: 'stringProp', value: 'wrong' },
+  ]),
 ];
 
 // Test cases for different quote styles
 const quotingVariationCases = [
-  createInvalidCase(
-    "<div title='single quotes'>Content</div>",
-    "<div title={'single quotes'}>Content</div>",
-    [{ attribute: 'title', value: 'single quotes' }]
-  ),
+  createInvalidCase("<div title='single quotes'>Content</div>", "<div title={'single quotes'}>Content</div>", [
+    { attribute: 'title', value: 'single quotes' },
+  ]),
 ];
 
 // Test cases for multiple attributes on the same element
@@ -107,7 +65,12 @@ const multilineStringCases = [
     d={\`M449.99,422.439v-85.005h22.354v11.444
       c6.152-7.383,16.544-13.538,27.095-13.538v21.818\`}
   />`,
-    [{ attribute: 'd', value: 'M449.99,422.439v-85.005h22.354v11.444\n      c6.152-7.383,16.544-13.538,27.095-13.538v21.818' }]
+    [
+      {
+        attribute: 'd',
+        value: 'M449.99,422.439v-85.005h22.354v11.444\n      c6.152-7.383,16.544-13.538,27.095-13.538v21.818',
+      },
+    ]
   ),
 ];
 
@@ -138,9 +101,7 @@ const nonStringValueCases = [
 ];
 
 // Test cases for elements without problematic attributes (should be valid)
-const noAttributeCases = [
-  createValidCase('<div>Content</div>'),
-];
+const noAttributeCases = [createValidCase('<div>Content</div>')];
 
 // Test cases for multiline template literals (should be valid)
 const validMultilineCases = [
@@ -150,7 +111,7 @@ const validMultilineCases = [
     c6.152-7.383,16.544-13.538,27.095-13.538v21.818\`} />`),
 ];
 
-// Organize all test cases
+// all test cases
 const TEST_CASES = {
   invalid: [
     ...basicStringAttributeCases,
@@ -160,12 +121,7 @@ const TEST_CASES = {
     ...multilineStringCases,
     ...specialCharacterCases,
   ],
-  valid: [
-    ...alreadyBracedCases,
-    ...nonStringValueCases,
-    ...noAttributeCases,
-    ...validMultilineCases,
-  ],
+  valid: [...alreadyBracedCases, ...nonStringValueCases, ...noAttributeCases, ...validMultilineCases],
 };
 
 const ruleTester = new RuleTester(PARSER_CONFIG);
