@@ -98,14 +98,14 @@ const multipleVariableCases = [
           name: 'showWarning',
           suggested: '_showWarning',
         },
-        messageId: 'derivedConditionalShouldStartWithUnderscore',
+        messageId: 'derivedConditionalShouldStartWithUnderscore' as const,
       },
       {
         data: {
           name: 'canSubmit',
           suggested: '_canSubmit',
         },
-        messageId: 'derivedConditionalShouldStartWithUnderscore',
+        messageId: 'derivedConditionalShouldStartWithUnderscore' as const,
       },
     ],
   },
