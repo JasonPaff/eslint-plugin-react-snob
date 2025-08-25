@@ -24,6 +24,18 @@ export function createInvalidCase(code: string, output: string, errors: Array<{ 
   };
 }
 
+// Helper function to create invalid test cases for no-inline-styles rule
+export function createNoInlineStylesInvalidCase(code: string) {
+  return {
+    code,
+    errors: [
+      {
+        messageId: 'noInlineStyle' as const,
+      },
+    ],
+  };
+}
+
 // Helper function to create valid test cases
 export function createValidCase(code: string) {
   return { code };
