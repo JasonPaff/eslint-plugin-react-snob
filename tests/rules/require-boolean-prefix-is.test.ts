@@ -375,6 +375,88 @@ const ignoredContextCases = [
   ),
 ];
 
+// Test cases for JSX props and function calls that should NOT be flagged
+const jsxAndFunctionCallCases = [
+  createValidCase('<Component disabled={true} visible={false} />', { allowedPrefixes: ['is'] }),
+  createValidCase('<Button enabled={enabled} loading={loading} />', { allowedPrefixes: ['should'] }),
+  createValidCase('someFunction({ active: true, enabled: false });', { allowedPrefixes: ['is'] }),
+  createValidCase('api.call({ visible: true, disabled: false });', { allowedPrefixes: ['can'] }),
+  createValidCase(
+    `
+      <MyComponent 
+        visible={visible}
+        disabled={disabled}
+        enabled={!loading}
+      />
+    `,
+    { allowedPrefixes: ['is'] }
+  ),
+];
+
+// Test cases for React component parameters that SHOULD be flagged
+const componentParameterCases = [
+  createBooleanPrefixInvalidCase(
+    `
+      function MyComponent({ visible }: { visible: boolean }) {
+        return <div>{visible}</div>;
+      }
+    `,
+    'visible',
+    '"is"',
+    'isVisible'
+  ),
+  createBooleanPrefixInvalidCase(
+    `
+      const MyComponent = ({ disabled }: { disabled: boolean }) => {
+        return <div>{disabled}</div>;
+      };
+    `,
+    'disabled',
+    '"can"',
+    'canDisabled',
+    { allowedPrefixes: ['can'] }
+  ),
+  createBooleanPrefixInvalidCase(
+    `
+      function useMyHook({ enabled }: { enabled: boolean }) {
+        return enabled;
+      }
+    `,
+    'enabled',
+    '"should"',
+    'shouldEnabled',
+    { allowedPrefixes: ['should'] }
+  ),
+];
+
+// Test cases for non-React function parameters that should NOT be flagged
+const nonReactFunctionParameterCases = [
+  createValidCase(
+    `
+      function utilityFunction({ visible }: { visible: boolean }) {
+        return visible;
+      }
+    `,
+    { allowedPrefixes: ['is'] }
+  ),
+  createValidCase(
+    `
+      const helperFn = ({ disabled }: { disabled: boolean }) => {
+        return !disabled;
+      };
+    `,
+    { allowedPrefixes: ['can'] }
+  ),
+  createValidCase(
+    `
+      function processData(enabled: boolean, disabled: boolean) {
+        return enabled && !disabled;
+      }
+    `,
+    { allowedPrefixes: ['should'] }
+  ),
+];
+
 // Test cases for complex expressions with correct custom prefixes
 const complexExpressionCases = [
   createValidCase(
@@ -395,6 +477,7 @@ const TEST_CASES = {
     ...reactUseStateCases,
     ...interfacePropertyCases,
     ...objectConstantCases,
+    ...componentParameterCases,
   ],
   valid: [
     ...correctDefaultPrefixCases,
@@ -413,8 +496,11 @@ const TEST_CASES = {
     ...ignoredContextCases,
     ...complexExpressionCases,
     ...nullishCoalescingNonBooleanCases,
+    ...jsxAndFunctionCallCases,
+    ...nonReactFunctionParameterCases,
   ],
 };
 
 const ruleTester = new RuleTester(PARSER_CONFIG);
+// @ts-expect-error ignore
 ruleTester.run('require-boolean-prefix-is', requireBooleanPrefixIs, TEST_CASES);

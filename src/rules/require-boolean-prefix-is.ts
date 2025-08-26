@@ -2,53 +2,49 @@ import { TSESTree } from '@typescript-eslint/utils';
 
 import {
   createRule,
-  suggestPrefixedName,
-  hasAnyValidPrefix,
   isBooleanType,
   isBooleanLiteral,
-  isBooleanExpression,
+  isLikelyBooleanExpression,
   isUseStateWithBoolean,
+  isComponentOrHookParameter,
   isInZodOmitOrPickMethod,
   isInConstructorCall,
+  suggestPrefixedName,
+  hasAnyValidPrefix,
 } from '../utils';
 
-// Use shared naming utilities from utils
+export interface RuleOptions {
+  allowedPrefixes: string[];
+}
 
-// Use shared boolean type utilities from utils
+const DEFAULT_OPTIONS: RuleOptions = {
+  allowedPrefixes: ['is'],
+};
 
-// Use shared context detection utilities from utils
+export const requireBooleanPrefixIs = createRule<[RuleOptions], 'booleanShouldStartWithPrefix'>({
+  create(context, [options = DEFAULT_OPTIONS]) {
+    const { allowedPrefixes } = options;
 
-// Use shared useState detection utility from utils
+    function formatPrefixes(prefixes: string[]): string {
+      if (prefixes.length === 1) {
+        return `"${prefixes[0]}"`;
+      }
+      if (prefixes.length === 2) {
+        return `"${prefixes[0]}", or "${prefixes[1]}"`;
+      }
+      const lastPrefix = prefixes[prefixes.length - 1];
+      const otherPrefixes = prefixes.slice(0, -1);
+      return `${otherPrefixes.map((p) => `"${p}"`).join(', ')}, or "${lastPrefix}"`;
+    }
 
-type Options = [
-  {
-    allowedPrefixes?: string[];
-  },
-];
-
-export const requireBooleanPrefixIs = createRule<Options, 'booleanShouldStartWithPrefix'>({
-  create(context, [options = {}]) {
-    const { allowedPrefixes = ['is'] } = options;
-
-    /**
-     * Reports an error for a boolean identifier that doesn't start with an allowed prefix
-     */
-    function reportBooleanNaming(node: TSESTree.Node, name: string): void {
-      if (hasAnyValidPrefix(name, allowedPrefixes)) return;
-
+    function reportBooleanPrefixError(node: TSESTree.Node, name: string): void {
       const suggested = suggestPrefixedName(name, allowedPrefixes);
-      const prefixList =
-        allowedPrefixes.length === 1
-          ? `"${allowedPrefixes[0]}"`
-          : allowedPrefixes
-              .slice(0, -1)
-              .map((p) => `"${p}"`)
-              .join(', ') + `, or "${allowedPrefixes[allowedPrefixes.length - 1]}"`;
+      const prefixes = formatPrefixes(allowedPrefixes);
 
       context.report({
         data: {
           name,
-          prefixes: prefixList,
+          prefixes,
           suggested,
         },
         messageId: 'booleanShouldStartWithPrefix',
@@ -56,332 +52,280 @@ export const requireBooleanPrefixIs = createRule<Options, 'booleanShouldStartWit
       });
     }
 
-    return {
-      // Regular arrow function parameters (non-component context)
-      'ArrowFunctionExpression > :matches(Identifier[typeAnnotation], ObjectPattern)'(
-        node: TSESTree.Identifier | TSESTree.ObjectPattern
-      ) {
-        // Skip if this is already handled by the component-specific rule above
-        let parent: TSESTree.Node | null = node.parent;
-        while (parent) {
-          if (
-            parent.type === 'VariableDeclarator' &&
-            parent.id.type === 'Identifier' &&
-            /^[A-Z]/.test(parent.id.name)
-          ) {
-            return; // This is handled by the component-specific rule
-          }
-          parent = parent.parent || null;
+    function checkBooleanVariable(node: TSESTree.VariableDeclarator | TSESTree.AssignmentPattern, name: string): void {
+      if (hasAnyValidPrefix(name, allowedPrefixes)) return;
+
+      // Check if it's in a context we should ignore
+      if (isInZodOmitOrPickMethod(node) || isInConstructorCall(node)) return;
+
+      // Check for boolean literal values
+      if (node.type === 'VariableDeclarator' && node.init && isBooleanLiteral(node.init)) {
+        reportBooleanPrefixError(node, name);
+        return;
+      }
+      if (node.type === 'AssignmentPattern' && isBooleanLiteral(node.right)) {
+        reportBooleanPrefixError(node, name);
+        return;
+      }
+
+      // Check for boolean type annotation
+      if (node.type === 'VariableDeclarator' && node.id.type === 'Identifier') {
+        if (node.id.typeAnnotation && isBooleanType(node.id.typeAnnotation)) {
+          reportBooleanPrefixError(node, name);
+          return;
         }
+      }
 
-        if (node.type === 'ObjectPattern') {
-          // Handle object pattern destructuring in arrow function parameters
-          if (node.typeAnnotation && node.typeAnnotation.typeAnnotation.type === 'TSTypeLiteral') {
-            const typeMembers = node.typeAnnotation.typeAnnotation.members;
-
-            node.properties.forEach((prop) => {
-              if (prop.type === 'Property' && prop.key.type === 'Identifier' && prop.value.type === 'Identifier') {
-                const propName = prop.key.name;
-
-                // Find the corresponding type member
-                const typeMember = typeMembers.find(
-                  (member) =>
-                    member.type === 'TSPropertySignature' &&
-                    member.key.type === 'Identifier' &&
-                    member.key.name === propName
-                );
-
-                if (
-                  typeMember &&
-                  'typeAnnotation' in typeMember &&
-                  typeMember.typeAnnotation &&
-                  isBooleanType(typeMember.typeAnnotation)
-                ) {
-                  reportBooleanNaming(prop.value, prop.value.name);
-                }
-              }
-            });
-          }
-        }
-
-        if (node.type === 'Identifier' && node.typeAnnotation && isBooleanType(node.typeAnnotation)) {
-          reportBooleanNaming(node, node.name);
-        }
-      },
-
-      // forwardRef callback function parameters - identifier params
-      'CallExpression[callee.name="forwardRef"] > ArrowFunctionExpression > Identifier[typeAnnotation]'(
-        node: TSESTree.Identifier
-      ) {
-        if (node.typeAnnotation && isBooleanType(node.typeAnnotation)) {
-          reportBooleanNaming(node, node.name);
-        }
-      },
-
-      // forwardRef callback function parameters
-      'CallExpression[callee.name="forwardRef"] > ArrowFunctionExpression > ObjectPattern'(
-        node: TSESTree.ObjectPattern
-      ) {
-        // Find the forwardRef call expression to get the generic type information
-        let forwardRefCall: TSESTree.CallExpression | null = null;
-        let parent: TSESTree.Node | null = node.parent;
-        while (parent) {
-          if (
-            parent.type === 'CallExpression' &&
-            parent.callee.type === 'Identifier' &&
-            parent.callee.name === 'forwardRef'
-          ) {
-            forwardRefCall = parent;
-            break;
-          }
-          parent = parent.parent || null;
-        }
-
-        if (forwardRefCall && forwardRefCall.typeArguments && forwardRefCall.typeArguments.params.length >= 2) {
-          // Get the props type parameter (second generic argument)
-          const propsTypeParam = forwardRefCall.typeArguments.params[1];
-
-          if (propsTypeParam.type === 'TSTypeReference' && propsTypeParam.typeName.type === 'Identifier') {
-            // For each destructured property, report if it should have "is" prefix
-            node.properties.forEach((prop) => {
-              if (prop.type === 'Property' && prop.key.type === 'Identifier' && prop.value.type === 'Identifier') {
-                const paramName = prop.value.name;
-
-                // We need to assume boolean properties based on common naming patterns
-                // This is a simplified approach since we can't easily access the interface definition here
-                // For now, just report all destructured parameters
-                reportBooleanNaming(prop.value, paramName);
-              }
-            });
+      // Check for boolean expressions (not nullish coalescing with non-boolean)
+      if (node.type === 'VariableDeclarator' && node.init && isLikelyBooleanExpression(node.init)) {
+        // Skip nullish coalescing unless both operands are boolean
+        if (node.init.type === 'LogicalExpression' && node.init.operator === '??') {
+          if (isBooleanLiteral(node.init.left) || isBooleanLiteral(node.init.right)) {
+            reportBooleanPrefixError(node, name);
           }
         } else {
-          // Fallback: Handle explicit type annotations on object pattern
-          if (node.typeAnnotation && node.typeAnnotation.typeAnnotation.type === 'TSTypeLiteral') {
-            const typeMembers = node.typeAnnotation.typeAnnotation.members;
-
-            node.properties.forEach((prop) => {
-              if (prop.type === 'Property' && prop.key.type === 'Identifier' && prop.value.type === 'Identifier') {
-                const propName = prop.key.name;
-
-                // Find the corresponding type member
-                const typeMember = typeMembers.find(
-                  (member) =>
-                    member.type === 'TSPropertySignature' &&
-                    member.key.type === 'Identifier' &&
-                    member.key.name === propName
-                );
-
-                if (
-                  typeMember &&
-                  'typeAnnotation' in typeMember &&
-                  typeMember.typeAnnotation &&
-                  isBooleanType(typeMember.typeAnnotation)
-                ) {
-                  reportBooleanNaming(prop.value, prop.value.name);
-                }
-              }
-            });
-          }
+          reportBooleanPrefixError(node, name);
         }
-      },
+      }
+      if (node.type === 'AssignmentPattern' && isLikelyBooleanExpression(node.right)) {
+        // Skip nullish coalescing unless both operands are boolean
+        if (node.right.type === 'LogicalExpression' && node.right.operator === '??') {
+          if (isBooleanLiteral(node.right.left) || isBooleanLiteral(node.right.right)) {
+            reportBooleanPrefixError(node, name);
+          }
+        } else {
+          reportBooleanPrefixError(node, name);
+        }
+      }
+    }
 
-      // Function parameters - only apply to React components
-      'FunctionDeclaration[id.name=/^[A-Z]/] > :matches(Identifier[typeAnnotation], ObjectPattern)'(
-        node: TSESTree.Identifier | TSESTree.ObjectPattern
+    function checkArrayPattern(node: TSESTree.ArrayPattern): void {
+      // Check useState destructuring
+      const parent = node.parent;
+      if (
+        parent?.type === 'VariableDeclarator' &&
+        parent.init?.type === 'CallExpression' &&
+        isUseStateWithBoolean(parent.init) &&
+        node.elements.length > 0 &&
+        node.elements[0]?.type === 'Identifier'
       ) {
-        if (node.type === 'ObjectPattern') {
-          // Handle object pattern destructuring in function parameters
-          if (node.typeAnnotation && node.typeAnnotation.typeAnnotation.type === 'TSTypeLiteral') {
-            const typeMembers = node.typeAnnotation.typeAnnotation.members;
+        const stateVarName = node.elements[0].name;
+        if (!hasAnyValidPrefix(stateVarName, allowedPrefixes)) {
+          reportBooleanPrefixError(node.elements[0], stateVarName);
+        }
+      }
+    }
 
-            node.properties.forEach((prop) => {
-              if (prop.type === 'Property' && prop.key.type === 'Identifier' && prop.value.type === 'Identifier') {
-                const propName = prop.key.name;
+    function checkObjectProperty(node: TSESTree.Property): void {
+      if (
+        node.key.type === 'Identifier' &&
+        !node.computed &&
+        node.value &&
+        !hasAnyValidPrefix(node.key.name, allowedPrefixes)
+      ) {
+        // Skip if in Zod omit/pick or constructor calls
+        if (isInZodOmitOrPickMethod(node) || isInConstructorCall(node)) return;
 
-                // Find the corresponding type member
-                const typeMember = typeMembers.find(
-                  (member) =>
-                    member.type === 'TSPropertySignature' &&
-                    member.key.type === 'Identifier' &&
-                    member.key.name === propName
-                );
-
-                if (
-                  typeMember &&
-                  'typeAnnotation' in typeMember &&
-                  typeMember.typeAnnotation &&
-                  isBooleanType(typeMember.typeAnnotation)
-                ) {
-                  reportBooleanNaming(prop.value, prop.value.name);
-                }
-              }
-            });
+        // Skip if this is a function call argument
+        let current: TSESTree.Node | undefined = node.parent;
+        while (current) {
+          if (current.type === 'CallExpression') {
+            return; // Skip function call arguments
           }
+          if (current.type === 'VariableDeclarator' || current.type === 'AssignmentExpression') {
+            break; // This is a variable assignment, proceed with checks
+          }
+          current = current.parent || undefined;
         }
 
-        // Handle simple identifiers with type annotations
-        if (node.type === 'Identifier' && node.typeAnnotation && isBooleanType(node.typeAnnotation)) {
-          reportBooleanNaming(node, node.name);
-        }
-      },
+        // Type guard to check if value is an Expression
+        const isExpression = (val: unknown): val is TSESTree.Expression => {
+          return (
+            val !== null &&
+            val !== undefined &&
+            // @ts-expect-error ignore
+            val.type !== 'AssignmentPattern' &&
+            // @ts-expect-error ignore
+            val.type !== 'TSEmptyBodyFunctionExpression'
+          );
+        };
 
-      // Object properties with boolean values
-      Property(node) {
-        if (node.key.type !== 'Identifier') return;
-
-        const name = node.key.name;
-
-        // Skip if this property is inside a Zod .omit() or .pick() method
-        if (isInZodOmitOrPickMethod(node)) {
+        // Check for boolean literal values
+        if (isExpression(node.value) && isBooleanLiteral(node.value)) {
+          reportBooleanPrefixError(node.key, node.key.name);
           return;
         }
 
-        // Skip if this property is inside a constructor call (new Something(...))
-        if (isInConstructorCall(node)) {
-          return;
+        // Check for boolean expressions
+        if (isExpression(node.value) && isLikelyBooleanExpression(node.value)) {
+          reportBooleanPrefixError(node.key, node.key.name);
         }
+      }
+    }
 
-        // Check if value is boolean
-        if (
-          node.value &&
-          node.value.type !== 'AssignmentPattern' &&
-          'type' in node.value &&
-          (isBooleanLiteral(node.value as TSESTree.Expression) ||
-            (node.value.type !== 'Identifier' &&
-              node.value.type !== 'TSEmptyBodyFunctionExpression' &&
-              isBooleanExpression(node.value as TSESTree.Expression)))
-        ) {
-          reportBooleanNaming(node, name);
-        }
-      },
-
-      // Class property definitions with boolean values or types
-      PropertyDefinition(node) {
-        if (node.key.type !== 'Identifier') return;
-
-        const name = node.key.name;
+    function checkParameter(node: TSESTree.Parameter): void {
+      if (node.type === 'Identifier' && !hasAnyValidPrefix(node.name, allowedPrefixes)) {
+        // Only check parameters in React components or hooks
+        if (!isComponentOrHookParameter(node)) return;
 
         // Check type annotation
         if (node.typeAnnotation && isBooleanType(node.typeAnnotation)) {
-          reportBooleanNaming(node, name);
-          return;
+          reportBooleanPrefixError(node, node.name);
         }
+      } else if (node.type === 'AssignmentPattern' && node.left.type === 'Identifier') {
+        const name = node.left.name;
+        if (!hasAnyValidPrefix(name, allowedPrefixes)) {
+          // Only check parameters in React components or hooks
+          if (!isComponentOrHookParameter(node)) return;
 
-        // Check value
-        if (node.value && (isBooleanLiteral(node.value) || isBooleanExpression(node.value))) {
-          reportBooleanNaming(node, name);
-        }
-      },
-
-      // Interface property signatures
-      TSPropertySignature(node) {
-        if (node.key.type !== 'Identifier') return;
-
-        const name = node.key.name;
-
-        if (node.typeAnnotation && isBooleanType(node.typeAnnotation)) {
-          reportBooleanNaming(node, name);
-        }
-      },
-
-      // Variable declarations (const, let, var)
-      VariableDeclarator(node) {
-        // Handle array destructuring (useState)
-        if (
-          node.id.type === 'ArrayPattern' &&
-          node.init &&
-          node.init.type === 'CallExpression' &&
-          isUseStateWithBoolean(node.init)
-        ) {
-          if (node.id.elements.length > 0) {
-            const stateVar = node.id.elements[0];
-            if (stateVar && stateVar.type === 'Identifier') {
-              reportBooleanNaming(stateVar, stateVar.name);
-            }
+          // Check for boolean default value
+          if (isBooleanLiteral(node.right)) {
+            reportBooleanPrefixError(node.left, name);
+            return;
           }
-          return;
+
+          // Check type annotation
+          if (node.left.typeAnnotation && isBooleanType(node.left.typeAnnotation)) {
+            reportBooleanPrefixError(node.left, name);
+          }
         }
+      }
+    }
 
-        // Handle simple identifiers
-        if (node.id.type !== 'Identifier') return;
-
-        const name = node.id.name;
-
-        // Check if it has boolean type annotation
-        if (node.id.typeAnnotation && isBooleanType(node.id.typeAnnotation)) {
-          reportBooleanNaming(node, name);
-          return;
-        }
-
-        // Check if initialized with boolean value
-        if (node.init && (isBooleanLiteral(node.init) || isBooleanExpression(node.init))) {
-          reportBooleanNaming(node, name);
-          return;
-        }
-      },
-
-      // Arrow function parameters - only for components
-      'VariableDeclarator[id.name=/^[A-Z]/] ArrowFunctionExpression > :matches(Identifier[typeAnnotation], ObjectPattern)'(
-        node: TSESTree.Identifier | TSESTree.ObjectPattern
+    function checkObjectPatternProperty(node: TSESTree.Property | TSESTree.RestElement): void {
+      if (
+        node.type === 'Property' &&
+        node.key.type === 'Identifier' &&
+        node.value.type === 'Identifier' &&
+        !hasAnyValidPrefix(node.value.name, allowedPrefixes)
       ) {
-        if (node.type === 'ObjectPattern') {
-          // Handle object pattern destructuring in arrow function parameters
-          if (node.typeAnnotation && node.typeAnnotation.typeAnnotation.type === 'TSTypeLiteral') {
-            const typeMembers = node.typeAnnotation.typeAnnotation.members;
+        // Check if this is a parameter destructuring in a component/hook
+        if (!isComponentOrHookParameter(node)) return;
 
-            node.properties.forEach((prop) => {
-              if (prop.type === 'Property' && prop.key.type === 'Identifier' && prop.value.type === 'Identifier') {
-                const propName = prop.key.name;
+        // The property name in object destructuring is the same as the variable name
+        // So we need to check if the key (not value) has a boolean type annotation
+        // But in parameter destructuring, we need to check the original interface/type
+        // For now, let's check if the destructured property has boolean type annotation
+        if (node.value.typeAnnotation && isBooleanType(node.value.typeAnnotation)) {
+          reportBooleanPrefixError(node.value, node.value.name);
+        }
+      }
+    }
 
-                // Find the corresponding type member
-                const typeMember = typeMembers.find(
-                  (member) =>
-                    member.type === 'TSPropertySignature' &&
-                    member.key.type === 'Identifier' &&
-                    member.key.name === propName
-                );
+    function checkInterfaceProperty(node: TSESTree.TSPropertySignature): void {
+      if (
+        node.key.type === 'Identifier' &&
+        !hasAnyValidPrefix(node.key.name, allowedPrefixes) &&
+        node.typeAnnotation &&
+        isBooleanType(node.typeAnnotation)
+      ) {
+        reportBooleanPrefixError(node.key, node.key.name);
+      }
+    }
 
-                if (
-                  typeMember &&
-                  'typeAnnotation' in typeMember &&
-                  typeMember.typeAnnotation &&
-                  isBooleanType(typeMember.typeAnnotation)
-                ) {
-                  reportBooleanNaming(prop.value, prop.value.name);
-                }
-              }
-            });
-          }
+    function checkClassProperty(node: TSESTree.PropertyDefinition): void {
+      if (node.key.type === 'Identifier' && !hasAnyValidPrefix(node.key.name, allowedPrefixes)) {
+        // Check for boolean value
+        if (node.value && isBooleanLiteral(node.value)) {
+          reportBooleanPrefixError(node.key, node.key.name);
+          return;
         }
 
-        if (node.type === 'Identifier' && node.typeAnnotation && isBooleanType(node.typeAnnotation)) {
-          reportBooleanNaming(node, node.name);
+        // Check for boolean type annotation
+        if (node.typeAnnotation && isBooleanType(node.typeAnnotation)) {
+          reportBooleanPrefixError(node.key, node.key.name);
+        }
+      }
+    }
+
+    function checkParameterPattern(node: TSESTree.ObjectPattern): void {
+      // Check if this is a React component or hook parameter
+      if (!isComponentOrHookParameter(node)) return;
+
+      // Get the type annotation from the parameter
+      const typeAnnotation = node.typeAnnotation?.typeAnnotation;
+      if (!typeAnnotation || typeAnnotation.type !== 'TSTypeLiteral') return;
+
+      // Create a map of property types
+      const propertyTypes: Map<string, boolean> = new Map();
+      typeAnnotation.members.forEach((member) => {
+        if (
+          member.type === 'TSPropertySignature' &&
+          member.key.type === 'Identifier' &&
+          member.typeAnnotation &&
+          isBooleanType(member.typeAnnotation)
+        ) {
+          propertyTypes.set(member.key.name, true);
+        }
+      });
+
+      // Check each destructured property
+      node.properties.forEach((prop) => {
+        if (
+          prop.type === 'Property' &&
+          prop.key.type === 'Identifier' &&
+          prop.value.type === 'Identifier' &&
+          !hasAnyValidPrefix(prop.value.name, allowedPrefixes) &&
+          propertyTypes.has(prop.key.name)
+        ) {
+          reportBooleanPrefixError(prop.value, prop.value.name);
+        }
+      });
+    }
+
+    return {
+      ArrayPattern: checkArrayPattern,
+      AssignmentPattern(node) {
+        if (node.left.type === 'Identifier') {
+          checkBooleanVariable(node, node.left.name);
+        }
+      },
+      'FunctionDeclaration > :first-child[type="Identifier"]'(node: TSESTree.Identifier) {
+        checkParameter(node);
+      },
+      'MethodDefinition[value.params] > FunctionExpression > :first-child[type="Identifier"]'(
+        node: TSESTree.Identifier
+      ) {
+        checkParameter(node);
+      },
+      ObjectPattern(node) {
+        // Check if this is a parameter pattern first
+        checkParameterPattern(node);
+        // Then check for variable destructuring patterns
+        if (node.parent?.type === 'VariableDeclarator') {
+          node.properties.forEach((prop) => {
+            checkObjectPatternProperty(prop);
+          });
+        }
+      },
+      'Property[kind="init"]': checkObjectProperty,
+      PropertyDefinition: checkClassProperty,
+      'TSInterfaceDeclaration TSPropertySignature': checkInterfaceProperty,
+      'TSTypeAliasDeclaration TSPropertySignature': checkInterfaceProperty,
+      VariableDeclarator(node) {
+        if (node.id.type === 'Identifier') {
+          checkBooleanVariable(node, node.id.name);
         }
       },
     };
   },
-  defaultOptions: [{}],
+  defaultOptions: [DEFAULT_OPTIONS],
   meta: {
     docs: {
-      description: 'Enforce boolean variables, state, and props to start with allowed prefix',
+      description:
+        'Enforce boolean variables, state, and props to start with "is" prefix (or custom prefixes) in developer-controlled contexts',
     },
-    fixable: undefined,
     messages: {
       booleanShouldStartWithPrefix:
-        'Boolean identifier "{{name}}" should start with {{prefixes}} prefix. Consider using "{{suggested}}" instead.',
+        'Boolean identifier "{{name}}" should start with {{prefixes}} prefix. Consider renaming to "{{suggested}}".',
     },
     schema: [
       {
         additionalProperties: false,
         properties: {
           allowedPrefixes: {
-            items: {
-              minLength: 1,
-              type: 'string',
-            },
-            minItems: 1,
+            items: { type: 'string' },
             type: 'array',
-            uniqueItems: true,
           },
         },
         type: 'object',

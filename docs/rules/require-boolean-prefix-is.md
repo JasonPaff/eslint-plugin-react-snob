@@ -1,347 +1,239 @@
 # require-boolean-prefix-is
 
-Enforce boolean variables, state, and props to start with "is" prefix (or "IS\_" for constants).
+Enforce boolean variables, state, and props to start with "is" prefix (or custom prefixes) in developer-controlled contexts.
 
 ## Rule Details
 
-This rule enforces that all boolean variables, state variables, and props must start with the prefix `is` (or `IS_` for uppercase constants). This naming convention improves code readability and makes boolean values immediately identifiable. By requiring consistent naming for boolean identifiers, the rule helps developers quickly understand the purpose and type of variables, leading to more maintainable and self-documenting code.
+This rule enforces that boolean identifiers must start with a specified prefix (default: `is`) to improve code readability and make boolean values immediately identifiable. The rule has been designed to only check contexts where developers have full control over naming, avoiding false positives from third-party APIs, libraries, and components.
 
-The rule recognizes two valid prefixes:
+The rule **only applies** to code that the developer writes and controls:
 
-- `is` followed by a capital letter for regular variables (e.g., `isVisible`, `isEnabled`)
-- `IS_` for uppercase constant naming (e.g., `IS_DELETED`, `IS_FEATURED`)
+### What is Checked ✅
 
-The rule applies to:
+- **React component parameters**: Boolean parameters in React components (functions starting with capital letters)
+- **Custom hook parameters**: Boolean parameters in custom hooks (functions starting with "use" + capital letter)
+- **useState variables**: React state variables with boolean initial values
+- **Interface and type properties**: Boolean properties in standalone interfaces and types
+- **Variable declarations**: Variables with boolean values or explicit boolean type annotations
+- **Object properties**: Boolean properties in object literals (variable assignments only, not function calls)
+- **Class properties**: Boolean class properties with values or type annotations
 
-- Variable declarations with boolean values or types
-- React `useState` hooks with boolean initial values
-- Interface and type alias properties with boolean types
-- Function parameters with boolean types (in React components)
-- Object properties with boolean values
-- Class properties with boolean values or types
+### What is NOT Checked ❌
 
-**Note**: The rule correctly handles the nullish coalescing operator (`??`). Variables that use nullish coalescing with non-boolean values (strings, numbers, etc.) are not flagged, as the operator returns the actual value type rather than a boolean.
+- **JSX prop names**: Boolean props passed to components in JSX syntax
+- **Third-party function calls**: Arguments passed to any function calls
+- **Non-React function parameters**: Parameters of functions that don't follow React component/hook naming
+- **General utility functions**: Regular functions that don't start with capital letters or "use"
 
-## Exception: Zod Schema Methods
+This targeted approach eliminates false positives while maintaining strict enforcement within your own component and hook definitions.
 
-The rule makes a special exception for Zod schema `.omit()` and `.pick()` method calls. When using these Zod utilities, boolean values in the property selection objects are not required to follow the "is" prefix convention. This is because these boolean values represent whether to include/exclude properties in the schema transformation, not actual boolean data values.
+## Options
 
-```jsx
-// ✅ Exception: Zod .omit() and .pick() methods
-const schema = userSchema.omit({
-  createdAt: true, // OK - indicates property should be omitted
-  updatedAt: false, // OK - indicates property should be included
-});
+This rule accepts an options object with the following property:
+
+- `allowedPrefixes` (string[], default: `["is"]`): Array of allowed prefixes for boolean identifiers
+
+### Configuration Examples
+
+```json
+// Default usage (requires "is" prefix)
+"react-snob/require-boolean-prefix-is": "error"
+
+// Custom single prefix
+"react-snob/require-boolean-prefix-is": ["error", {
+  "allowedPrefixes": ["has"]
+}]
+
+// Multiple allowed prefixes
+"react-snob/require-boolean-prefix-is": ["error", {
+  "allowedPrefixes": ["is", "has", "should", "can"]
+}]
 ```
 
-This exception only applies to object properties directly within `.omit()` and `.pick()` method calls. Regular object properties and boolean variables elsewhere in the code must still follow the "is" prefix convention.
+## Examples
 
-Examples of **incorrect** code for this rule:
+### ❌ Incorrect Code
 
 ```jsx
-// ❌ Boolean variables without "is" prefix
+// Variables with boolean values
 const visible = true;
 const disabled = false;
 let loading = true;
-```
 
-```jsx
-// ❌ React useState without "is" prefix
+// React useState without proper prefix
 const [open, setOpen] = useState(false);
 const [active, setActive] = useState(true);
-```
 
-```jsx
-// ❌ Interface properties without "is" prefix
+// Interface properties
 interface ButtonProps {
   disabled: boolean;
   visible: boolean;
   onClick: () => void;
 }
-```
 
-```jsx
-// ❌ Type alias properties without "is" prefix
-type ModalProps = {
-  open: boolean;
-  closable: boolean;
-};
-```
-
-```jsx
-// ❌ Component props without "is" prefix
-function Button({ disabled }: { disabled: boolean }) {
-  return <button disabled={disabled}>Click</button>;
+// React component parameters
+function MyComponent({ visible }: { visible: boolean }) {
+  return <div>{visible}</div>;
 }
-```
 
-```jsx
-// ❌ Arrow function parameters without "is" prefix
-const handleToggle = (enabled: boolean) => {
-  console.log(enabled);
-};
-```
+// Custom hook parameters
+function useToggle({ enabled }: { enabled: boolean }) {
+  return enabled;
+}
 
-```jsx
-// ❌ Object properties with boolean values
+// Object properties with boolean values
 const config = {
   settings: {
     enabled: true,
     visible: false,
   },
 };
-```
 
-```jsx
-// ❌ Class component state without "is" prefix
+// Class properties
 class MyComponent extends React.Component {
-  state = {
-    loading: false,
-    visible: true,
-  };
+  loading: boolean = false;
+  visible = true;
 }
 ```
 
-```jsx
-// ❌ forwardRef with boolean props
-interface InputProps {
-  disabled: boolean;
-  readOnly: boolean;
-}
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ disabled, readOnly }, ref) => <input ref={ref} disabled={disabled} readOnly={readOnly} />
-);
-```
+### ✅ Correct Code
 
 ```jsx
-// ❌ Constants without "IS_" prefix
-const SETTINGS = {
-  ENABLED: true,
-  VISIBLE: false,
-  DEBUG_MODE: true,
-};
-
-export const APP_CONFIG = {
-  API_ENDPOINT: 'https://api.example.com',
-  FEATURE_ENABLED: true,
-  DEBUG: false,
-  VERSION: '1.0.0',
-  PRODUCTION_MODE: false,
-} as const;
-```
-
-Examples of **correct** code for this rule:
-
-```jsx
-// ✅ Boolean variables with "is" prefix
+// Variables with proper "is" prefix
 const isVisible = true;
 const isDisabled = false;
 let isLoading = true;
-```
 
-```jsx
-// ✅ React useState with "is" prefix
+// React useState with proper prefix
 const [isOpen, setIsOpen] = useState(false);
 const [isActive, setIsActive] = useState(true);
-```
 
-```jsx
-// ✅ Interface properties with "is" prefix
+// Interface properties with proper prefix
 interface ButtonProps {
   isDisabled: boolean;
   isVisible: boolean;
   onClick: () => void;
 }
-```
 
-```jsx
-// ✅ Type alias properties with "is" prefix
-type ModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-};
-```
-
-```jsx
-// ✅ Component props with "is" prefix
-function Button({ isDisabled }: { isDisabled: boolean }) {
-  return <button disabled={isDisabled}>Click</button>;
+// React component parameters with proper prefix
+function MyComponent({ isVisible }: { isVisible: boolean }) {
+  return <div>{isVisible}</div>;
 }
-```
 
-```jsx
-// ✅ Arrow function parameters with "is" prefix
-const handleToggle = (isEnabled: boolean) => {
-  if (isEnabled) {
-    console.log('Enabled');
-  }
-};
-```
+// Custom hook parameters with proper prefix
+function useToggle({ isEnabled }: { isEnabled: boolean }) {
+  return isEnabled;
+}
 
-```jsx
-// ✅ Object properties with "is" prefix for boolean values
+// Object properties with proper prefix
 const config = {
   settings: {
     isEnabled: true,
     isVisible: false,
   },
 };
-```
 
-```jsx
-// ✅ Class component state with "is" prefix
+// Class properties with proper prefix
 class MyComponent extends React.Component {
-  state = {
-    isLoading: false,
-    isVisible: true,
-  };
+  isLoading: boolean = false;
+  isVisible = true;
 }
-```
 
-```jsx
-// ✅ forwardRef with properly named boolean props
-interface InputProps {
-  isDisabled: boolean;
-  isReadOnly: boolean;
+// JSX props are NOT checked (no errors)
+<Component disabled={true} visible={false} />
+<Button enabled={enabled} loading={loading} />
+
+// Function call arguments are NOT checked (no errors)
+someFunction({ active: true, enabled: false });
+api.call({ visible: true, disabled: false });
+
+// Non-React function parameters are NOT checked (no errors)
+function utilityFunction({ visible }: { visible: boolean }) {
+  return visible;
 }
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ isDisabled, isReadOnly }, ref) => <input ref={ref} disabled={isDisabled} readOnly={isReadOnly} />
-);
-```
 
-```jsx
-// ✅ Complex boolean expressions with "is" prefix
-const isReady = isLoaded && !isError;
-const isComplete = isValid && isSubmitted;
-```
+const helperFn = ({ disabled }: { disabled: boolean }) => {
+  return !disabled;
+};
 
-```jsx
-// ✅ Optional boolean properties with "is" prefix
-interface ComponentProps {
-  isDisabled?: boolean;
-  isVisible?: boolean;
-}
-```
-
-```jsx
-// ✅ Union types with boolean and "is" prefix
-interface Props {
-  isActive: boolean | undefined;
-  isLoading: boolean | null;
-}
-```
-
-```jsx
-// ✅ Non-boolean variables are ignored
+// Non-boolean variables are ignored
 const loading = 'in-progress';
 const disabled = 0;
 const visible = 'block';
-const count = useState(0);
-const name = useState('');
-```
 
-```jsx
-// ✅ Non-component functions are ignored for parameters
-function utilityFunction(enabled: boolean, disabled: boolean) {
-  return enabled && !disabled;
-}
-```
-
-```jsx
-// ✅ Constants with "IS_" prefix
-export const BOBBLEHEAD_DEFAULTS = {
-  COMMENT_COUNT: 0,
-  CURRENT_CONDITION: 'excellent',
-  IS_DELETED: false,
-  IS_FEATURED: false,
-  IS_PUBLIC: true,
-  LIKE_COUNT: 0,
-  SORT_ORDER: 0,
-  STATUS: 'owned',
-  VIEW_COUNT: 0,
-} as const;
-
+// Constants with "IS_" prefix
 const CONFIG = {
   API_URL: 'https://example.com',
   IS_DEVELOPMENT: false,
   IS_ENABLED: true,
   MAX_RETRIES: 3,
-  IS_DEBUG_MODE: false,
-};
-
-const FLAGS = {
-  IS_FEATURE_A_ENABLED: true,
-  IS_FEATURE_B_ENABLED: false,
-  IS_BETA_USER: true,
 };
 ```
 
-```jsx
-// ✅ Destructuring non-boolean values
-const { loading, error } = api;
-const loading = someFunction();
-```
+### Custom Prefix Examples
 
 ```jsx
-// ✅ Nullish coalescing operator with non-boolean values
-const apple = 'pizza' ?? 'pie';
+// With allowedPrefixes: ["has", "can", "should"]
+
+// ❌ Incorrect
+const visible = true;
+const enabled = false;
+
+// ✅ Correct
+const hasPermission = true;
+const canEdit = false;
+const shouldRender = true;
+```
+
+## Special Cases and Exceptions
+
+### Zod Schema Methods
+
+The rule makes an exception for Zod schema `.omit()` and `.pick()` method calls, where boolean values indicate property inclusion/exclusion rather than actual boolean data:
+
+```jsx
+// ✅ Allowed: Zod .omit() and .pick() methods
+const schema = userSchema.omit({
+  createdAt: true, // OK - indicates property should be omitted
+  updatedAt: false, // OK - indicates property should be included
+});
+
+const basicSchema = userSchema.pick({
+  name: true, // OK - indicates property should be picked
+  email: true, // OK - indicates property should be picked
+});
+```
+
+### Constructor Calls
+
+Properties in constructor calls (new expressions) are not checked:
+
+```jsx
+// ✅ Not checked
+const client = new Realtime({ disabled: true });
+const instance = new SomeClass({ enabled: false, visible: true });
+```
+
+### Nullish Coalescing Operator
+
+Variables using nullish coalescing with non-boolean values are correctly ignored:
+
+```jsx
+// ✅ Not flagged (non-boolean values)
 const title = userTitle ?? 'Default Title';
 const count = userCount ?? 0;
-
-// ✅ Nullish coalescing in component props
-interface ComponentProps {
-  breakpoint: string;
-  maxItems: number;
-}
-
-const Component = ({ breakpoint, maxItems }: ComponentProps) => {
-  const _breakpoint = breakpoint ?? 'mobile';
-  const _maxItems = maxItems ?? 10;
-  return <div>Content</div>;
-};
+const _breakpoint = breakpoint ?? 'mobile';
 ```
-
-```jsx
-// ✅ Zod schema .omit() and .pick() methods (exception)
-const userSchema = z.object({
-  name: z.string(),
-  age: z.number(),
-  isActive: z.boolean(),
-});
-
-// Boolean values in .omit() and .pick() are allowed without "is" prefix
-const publicUserSchema = userSchema.omit({
-  isActive: true, // ✅ Allowed in .omit()
-  createdAt: true, // ✅ Allowed in .omit()
-});
-
-const basicUserSchema = userSchema.pick({
-  name: true, // ✅ Allowed in .pick()
-  email: true, // ✅ Allowed in .pick()
-  updatedAt: false, // ✅ Allowed in .pick()
-});
-
-// Complex Zod transformations are also allowed
-const transformedSchema = baseSchema.omit({ metadata: true }).pick({
-  name: true,
-  isActive: true,
-  createdAt: false,
-});
-```
-
-## Options
-
-This rule has no options.
 
 ## When Not To Use It
 
 You might want to disable this rule if:
 
-- Your project has different established naming conventions for boolean values
-- You're working with external APIs or libraries that use different boolean naming patterns
-- You prefer a different boolean naming convention (like `has`, `can`, `should`, etc.)
+- Your project uses different boolean naming conventions (like `has`, `can`, `should` exclusively)
+- You're working extensively with third-party APIs that use different patterns (though this rule now avoids most such conflicts)
+- Your team prefers not to enforce boolean naming conventions
 
-However, consider that consistent boolean naming with the `is` prefix significantly improves code readability and is a widely accepted convention in the React community.
+However, consistent boolean naming significantly improves code readability and is a widely accepted convention in the React community.
 
 ## Related Rules
 

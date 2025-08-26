@@ -2,7 +2,13 @@
 export { createRule } from './rule-creator';
 
 // Component detection and analysis
-export { extractComponentName, isComponentFunction } from './component-utils';
+export {
+  extractComponentName,
+  isComponentFunction,
+  isHookFunction,
+  isInComponentOrHookScope,
+  isComponentOrHookParameter,
+} from './component-utils';
 
 // AST traversal and expression analysis
 export { countLogicalOperators, hasTemplateLiteral, hasLogicalAssignment, isComplexOperand } from './ast-traversal';
