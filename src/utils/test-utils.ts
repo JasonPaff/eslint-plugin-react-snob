@@ -1,0 +1,128 @@
+// Parser configuration for JSX testing
+export const PARSER_CONFIG = {
+  languageOptions: {
+    parser: require('@typescript-eslint/parser'),
+    parserOptions: {
+      ecmaFeatures: {
+        jsx: true,
+      },
+      ecmaVersion: 2020,
+      sourceType: 'module' as const,
+    },
+  },
+} as const;
+
+// Helper function to create invalid test cases
+export function createInvalidCase(code: string, output: string, errors: Array<{ attribute: string; value: string }>) {
+  return {
+    code,
+    errors: errors.map((error) => ({
+      data: error,
+      messageId: 'requireBraces' as const,
+    })),
+    output,
+  };
+}
+
+// Helper function to create invalid test cases for no-inline-styles rule
+export function createNoInlineStylesInvalidCase(code: string) {
+  return {
+    code,
+    errors: [
+      {
+        messageId: 'noInlineStyle' as const,
+      },
+    ],
+  };
+}
+
+// Helper function to create invalid test cases for require-derived-conditional-prefix rule
+export function createDerivedConditionalInvalidCase(code: string, name: string, suggested: string) {
+  return {
+    code,
+    errors: [
+      {
+        data: {
+          name,
+          suggested,
+        },
+        messageId: 'derivedConditionalShouldStartWithUnderscore' as const,
+      },
+    ],
+  };
+}
+
+// Helper function to create invalid test cases for require-boolean-prefix-is rule
+export function createBooleanPrefixInvalidCase(
+  code: string,
+  name: string,
+  prefixes: string,
+  suggested: string,
+  options?: { allowedPrefixes: string[] }
+) {
+  return {
+    code,
+    errors: [
+      {
+        data: {
+          name,
+          prefixes,
+          suggested,
+        },
+        messageId: 'booleanShouldStartWithPrefix' as const,
+      },
+    ],
+    ...(options && { options: [options] }),
+  };
+}
+
+// Helper function to create invalid test cases for no-complex-jsx-conditions rule
+export function createComplexConditionInvalidCase(code: string, errorCount: number = 1) {
+  return {
+    code,
+    errors: Array(errorCount).fill({
+      messageId: 'complexCondition' as const,
+    }),
+  };
+}
+
+// Helper function to create invalid test cases for component-prop-interface-naming rule
+export function createComponentPropInterfaceNamingInvalidCase(
+  code: string,
+  actual: string,
+  component: string,
+  expected: string
+) {
+  return {
+    code,
+    errors: [
+      {
+        data: {
+          actual,
+          component,
+          expected,
+        },
+        messageId: 'incorrectPropsInterfaceName' as const,
+      },
+    ],
+  };
+}
+
+// Helper function to create invalid test cases for consistent-event-handler-naming rule
+export function createEventHandlerInvalidCase(
+  code: string,
+  errors: Array<{ actual: string; context: 'internal' | 'prop'; expected: string }>
+) {
+  return {
+    code,
+    errors: errors.map((error) => ({
+      data: error,
+      messageId: 'incorrectHandlerNaming' as const,
+    })),
+  };
+}
+
+// Helper function to create valid test cases
+export function createValidCase(code: string) {
+  return { code };
+}
