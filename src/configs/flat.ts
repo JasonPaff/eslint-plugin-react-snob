@@ -4,6 +4,7 @@ import { noBracketArrayType } from '../rules/no-bracket-array-type';
 import { noComplexJsxConditions } from '../rules/no-complex-jsx-conditions';
 import { noIifeInJsx } from '../rules/no-iife-in-jsx';
 import { noInlineStyles } from '../rules/no-inline-styles';
+import { noReactNamespace } from '../rules/no-react-namespace';
 import { noShorthandFragment } from '../rules/no-shorthand-fragment';
 import { requireBooleanPrefixIs } from '../rules/require-boolean-prefix-is';
 import { requireDerivedConditionalPrefix } from '../rules/require-derived-conditional-prefix';
@@ -12,7 +13,7 @@ import { requireJsxStringBraces } from '../rules/require-jsx-string-braces';
 const plugin = {
   meta: {
     name: 'eslint-plugin-react-snob',
-    version: '0.0.23',
+    version: '0.0.24',
   },
   rules: {
     'component-prop-interface-naming': componentPropInterfaceNaming,
@@ -21,6 +22,7 @@ const plugin = {
     'no-complex-jsx-conditions': noComplexJsxConditions,
     'no-iife-in-jsx': noIifeInJsx,
     'no-inline-styles': noInlineStyles,
+    'no-react-namespace': noReactNamespace,
     'no-shorthand-fragment': noShorthandFragment,
     'require-boolean-prefix-is': requireBooleanPrefixIs,
     'require-derived-conditional-prefix': requireDerivedConditionalPrefix,
@@ -39,6 +41,7 @@ export const recommended = {
     'react-snob/no-complex-jsx-conditions': 'warn',
     'react-snob/no-iife-in-jsx': 'warn',
     'react-snob/no-inline-styles': 'warn',
+    'react-snob/no-react-namespace': 'warn',
     'react-snob/no-shorthand-fragment': 'warn',
     'react-snob/require-boolean-prefix-is': 'warn',
     'react-snob/require-derived-conditional-prefix': 'warn',
@@ -57,6 +60,7 @@ export const strict = {
     'react-snob/no-complex-jsx-conditions': 'error',
     'react-snob/no-iife-in-jsx': 'error',
     'react-snob/no-inline-styles': 'error',
+    'react-snob/no-react-namespace': 'error',
     'react-snob/no-shorthand-fragment': 'error',
     'react-snob/require-boolean-prefix-is': 'error',
     'react-snob/require-derived-conditional-prefix': 'error',

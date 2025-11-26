@@ -1,6 +1,6 @@
 {
   "name": "eslint-plugin-react-snob",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "description": "An ESLint plugin for React best practices",
   "keywords": [
     "eslint",
@@ -41,8 +41,7 @@
     "lint:fix": "eslint src tests --ext .ts --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepublishOnly": "npm run build",
-    "publish": "npm publish"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@typescript-eslint/utils": "^8.40.0"
