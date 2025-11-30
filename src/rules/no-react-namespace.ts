@@ -9,13 +9,21 @@ export const noReactNamespace = createRule<[], MessageIds>({
     // Track existing named imports from 'react'
     const existingImports = new Set<string>();
     const existingTypeImports = new Set<string>();
-    let reactImportNode: TSESTree.ImportDeclaration | null = null;
+    // Track type-only import (import type { ... } from 'react') separately from regular import
+    let typeOnlyImportNode: TSESTree.ImportDeclaration | null = null;
+    let regularImportNode: TSESTree.ImportDeclaration | null = null;
 
     return {
       // Check for existing react imports
       ImportDeclaration(node) {
         if (node.source.value === 'react') {
-          reactImportNode = node;
+          // Track type-only imports separately from regular imports
+          if (node.importKind === 'type') {
+            typeOnlyImportNode = node;
+          } else {
+            regularImportNode = node;
+          }
+
           for (const specifier of node.specifiers) {
             if (specifier.type === AST_NODE_TYPES.ImportSpecifier) {
               const importedName =
@@ -54,9 +62,9 @@ export const noReactNamespace = createRule<[], MessageIds>({
 
               // Add import if not already imported
               if (!existingImports.has(memberName)) {
-                if (reactImportNode) {
-                  // Add to existing import
-                  const lastSpecifier = reactImportNode.specifiers[reactImportNode.specifiers.length - 1];
+                if (regularImportNode) {
+                  // Add to existing regular import
+                  const lastSpecifier = regularImportNode.specifiers[regularImportNode.specifiers.length - 1];
                   if (lastSpecifier) {
                     fixes.push(fixer.insertTextAfter(lastSpecifier, `, ${memberName}`));
                   }
@@ -97,11 +105,16 @@ export const noReactNamespace = createRule<[], MessageIds>({
 
               // Add type import if not already imported
               if (!existingTypeImports.has(typeName) && !existingImports.has(typeName)) {
-                if (reactImportNode) {
-                  // Check if there's already a type import we can add to
-                  const lastSpecifier = reactImportNode.specifiers[reactImportNode.specifiers.length - 1];
+                if (typeOnlyImportNode) {
+                  // Prefer adding to existing type-only import (import type { ... } from 'react')
+                  const lastSpecifier = typeOnlyImportNode.specifiers[typeOnlyImportNode.specifiers.length - 1];
                   if (lastSpecifier) {
-                    // Add as type import
+                    fixes.push(fixer.insertTextAfter(lastSpecifier, `, ${typeName}`));
+                  }
+                } else if (regularImportNode) {
+                  // Fall back to adding with 'type' prefix to regular import
+                  const lastSpecifier = regularImportNode.specifiers[regularImportNode.specifiers.length - 1];
+                  if (lastSpecifier) {
                     fixes.push(fixer.insertTextAfter(lastSpecifier, `, type ${typeName}`));
                   }
                 } else {

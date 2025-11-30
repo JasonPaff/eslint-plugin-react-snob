@@ -316,6 +316,56 @@ const functionDeclarationCases = [
   ),
 ];
 
+// Test cases for dual import scenarios (type-only import + regular import)
+// When both exist, type imports should be added to the type-only import statement
+const dualImportTypeCases = [
+  // Type import first, then regular import - type should go to type-only import
+  createNoReactNamespaceInvalidCase(
+    `import type { ComponentProps } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+const handleKeyDown = (event: React.KeyboardEvent) => {};`,
+    'KeyboardEvent',
+    `import type { ComponentProps, KeyboardEvent } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+const handleKeyDown = (event: KeyboardEvent) => {};`,
+    'noReactNamespaceType'
+  ),
+  // Regular import first, then type import - type should still go to type-only import
+  createNoReactNamespaceInvalidCase(
+    `import { useCallback } from 'react';
+import type { ComponentProps } from 'react';
+const handleClick = (event: React.MouseEvent) => {};`,
+    'MouseEvent',
+    `import { useCallback } from 'react';
+import type { ComponentProps, MouseEvent } from 'react';
+const handleClick = (event: MouseEvent) => {};`,
+    'noReactNamespaceType'
+  ),
+  // Only type-only import exists - should add directly without 'type' prefix
+  createNoReactNamespaceInvalidCase(
+    `import type { ComponentProps } from 'react';
+const handleFocus = (event: React.FocusEvent) => {};`,
+    'FocusEvent',
+    `import type { ComponentProps, FocusEvent } from 'react';
+const handleFocus = (event: FocusEvent) => {};`,
+    'noReactNamespaceType'
+  ),
+];
+
+// Test cases for runtime values when both import types exist
+const dualImportRuntimeCases = [
+  // Runtime value should go to regular import, not type-only import
+  createNoReactNamespaceInvalidCase(
+    `import type { ComponentProps } from 'react';
+import { useCallback } from 'react';
+const ref = React.useRef(null);`,
+    'useRef',
+    `import type { ComponentProps } from 'react';
+import { useCallback, useRef } from 'react';
+const ref = useRef(null);`
+  ),
+];
+
 // Test cases with multiple React.* usages (multiple fix passes required)
 const multipleUsageCases = [
   {
@@ -339,12 +389,15 @@ const multipleUsageCases = [
       { data: { member: 'useState' }, messageId: 'noReactNamespace' as const },
     ],
     // Array format for multiple fix passes
+    // After first pass: type import created for ChangeEvent
+    // After second pass: regular import created for useState (runtime values go to regular imports)
     output: [
       `import type { ChangeEvent } from 'react';
 const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
       const [value, setValue] = React.useState(event.target.value);
     };`,
-      `import type { ChangeEvent, useState } from 'react';
+      `import { useState } from 'react';
+import type { ChangeEvent } from 'react';
 const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
       const [value, setValue] = useState(event.target.value);
     };`,
@@ -413,6 +466,8 @@ const TEST_CASES = {
     ...componentTypeNamespaceCases,
     ...utilityTypeNamespaceCases,
     ...functionDeclarationCases,
+    ...dualImportTypeCases,
+    ...dualImportRuntimeCases,
     ...multipleUsageCases,
   ],
   valid: [
