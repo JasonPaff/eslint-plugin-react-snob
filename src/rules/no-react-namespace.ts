@@ -1,8 +1,22 @@
+import type { RuleFix, RuleFixer } from '@typescript-eslint/utils/ts-eslint';
+
 import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
 
 import { createRule } from '../utils';
 
 type MessageIds = 'noReactNamespace' | 'noReactNamespaceType';
+
+/**
+ * Check if a statement is a directive like 'use client' or 'use server'
+ */
+function isDirective(statement: TSESTree.Statement): boolean {
+  return (
+    statement.type === AST_NODE_TYPES.ExpressionStatement &&
+    statement.expression.type === AST_NODE_TYPES.Literal &&
+    typeof statement.expression.value === 'string' &&
+    (statement.expression.value === 'use client' || statement.expression.value === 'use server')
+  );
+}
 
 export const noReactNamespace = createRule<[], MessageIds>({
   create(context) {
@@ -12,6 +26,40 @@ export const noReactNamespace = createRule<[], MessageIds>({
     // Track type-only import (import type { ... } from 'react') separately from regular import
     let typeOnlyImportNode: TSESTree.ImportDeclaration | null = null;
     let regularImportNode: TSESTree.ImportDeclaration | null = null;
+
+    /**
+     * Create a fix that inserts a new import statement at the correct location,
+     * after any 'use client' or 'use server' directives.
+     */
+    function createNewImportFix(fixer: RuleFixer, importStatement: string): RuleFix | null {
+      const sourceCode = context.sourceCode;
+      const body = sourceCode.ast.body;
+
+      // Find the last directive at the start of the file
+      let lastDirectiveIndex = -1;
+      for (let i = 0; i < body.length; i++) {
+        if (isDirective(body[i])) {
+          lastDirectiveIndex = i;
+        } else {
+          // Stop at first non-directive statement
+          break;
+        }
+      }
+
+      if (lastDirectiveIndex >= 0) {
+        // Insert after the last directive
+        const lastDirective = body[lastDirectiveIndex];
+        return fixer.insertTextAfter(lastDirective, `\n\n${importStatement}`);
+      } else {
+        // No directives, insert at the very beginning
+        const firstToken = sourceCode.getFirstToken(sourceCode.ast);
+        if (firstToken) {
+          return fixer.insertTextBefore(firstToken, `${importStatement}\n`);
+        }
+      }
+
+      return null;
+    }
 
     return {
       // Check for existing react imports
@@ -69,11 +117,10 @@ export const noReactNamespace = createRule<[], MessageIds>({
                     fixes.push(fixer.insertTextAfter(lastSpecifier, `, ${memberName}`));
                   }
                 } else {
-                  // Create new import at the top of the file
-                  const sourceCode = context.sourceCode;
-                  const firstToken = sourceCode.getFirstToken(sourceCode.ast);
-                  if (firstToken) {
-                    fixes.push(fixer.insertTextBefore(firstToken, `import { ${memberName} } from 'react';\n`));
+                  // Create new import after any directives ('use client', 'use server')
+                  const importFix = createNewImportFix(fixer, `import { ${memberName} } from 'react';`);
+                  if (importFix) {
+                    fixes.push(importFix);
                   }
                 }
                 existingImports.add(memberName);
@@ -118,11 +165,10 @@ export const noReactNamespace = createRule<[], MessageIds>({
                     fixes.push(fixer.insertTextAfter(lastSpecifier, `, type ${typeName}`));
                   }
                 } else {
-                  // Create new type import at the top of the file
-                  const sourceCode = context.sourceCode;
-                  const firstToken = sourceCode.getFirstToken(sourceCode.ast);
-                  if (firstToken) {
-                    fixes.push(fixer.insertTextBefore(firstToken, `import type { ${typeName} } from 'react';\n`));
+                  // Create new type import after any directives ('use client', 'use server')
+                  const importFix = createNewImportFix(fixer, `import type { ${typeName} } from 'react';`);
+                  if (importFix) {
+                    fixes.push(importFix);
                   }
                 }
                 existingTypeImports.add(typeName);

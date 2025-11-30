@@ -366,6 +366,63 @@ const ref = useRef(null);`
   ),
 ];
 
+// Test cases for 'use client' and 'use server' directive handling
+// New imports should be inserted after directives, not before them
+const directiveCases = [
+  // 'use client' with type import - should insert after directive
+  createNoReactNamespaceInvalidCase(
+    `'use client';
+
+const handleKeyDown = (event: React.KeyboardEvent) => {};`,
+    'KeyboardEvent',
+    `'use client';
+
+import type { KeyboardEvent } from 'react';
+
+const handleKeyDown = (event: KeyboardEvent) => {};`,
+    'noReactNamespaceType'
+  ),
+  // 'use server' with type import - should insert after directive
+  createNoReactNamespaceInvalidCase(
+    `'use server';
+
+function handleSubmit(event: React.FormEvent): void {}`,
+    'FormEvent',
+    `'use server';
+
+import type { FormEvent } from 'react';
+
+function handleSubmit(event: FormEvent): void {}`,
+    'noReactNamespaceType'
+  ),
+  // 'use client' with runtime import - should insert after directive
+  createNoReactNamespaceInvalidCase(
+    `'use client';
+
+const [count, setCount] = React.useState(0);`,
+    'useState',
+    `'use client';
+
+import { useState } from 'react';
+
+const [count, setCount] = useState(0);`
+  ),
+  // 'use client' with existing imports - should still add to existing import
+  createNoReactNamespaceInvalidCase(
+    `'use client';
+
+import { useCallback } from 'react';
+
+const ref = React.useRef(null);`,
+    'useRef',
+    `'use client';
+
+import { useCallback, useRef } from 'react';
+
+const ref = useRef(null);`
+  ),
+];
+
 // Test cases with multiple React.* usages (multiple fix passes required)
 const multipleUsageCases = [
   {
@@ -468,6 +525,7 @@ const TEST_CASES = {
     ...functionDeclarationCases,
     ...dualImportTypeCases,
     ...dualImportRuntimeCases,
+    ...directiveCases,
     ...multipleUsageCases,
   ],
   valid: [
